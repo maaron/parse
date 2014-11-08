@@ -2,6 +2,7 @@
 
 #include "tree.h"
 #include "placeholders.h"
+#include <cctype>
 
 namespace parse
 {
@@ -612,6 +613,15 @@ namespace parse
         static bool match(token_t t)
         {
             return first.match(t) && !second.match(t);
+        }
+    };
+
+    struct never : parser<never>
+    {
+        template <typename iterator_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end)
+        {
+            return false;
         }
     };
 

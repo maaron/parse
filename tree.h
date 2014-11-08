@@ -2,6 +2,7 @@
 
 #include "list.h"
 #include <memory>
+#include <vector>
 
 namespace parse
 {
