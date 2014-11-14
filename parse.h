@@ -2,6 +2,7 @@
 
 #include "tree.h"
 #include "placeholders.h"
+#include <cctype>
 
 namespace parse
 {

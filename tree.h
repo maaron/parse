@@ -2,6 +2,7 @@
 
 #include "list.h"
 #include <memory>
+#include <vector>
 
 namespace parse
 {
@@ -253,9 +254,9 @@ namespace parse
         }
 
         template <typename parser_t, typename stream_t>
-		typename parser_t::template ast< typename stream_t::iterator >::type make_ast(parser_t& p, stream_t& s)
+		typename parser_t::template get_ast< typename stream_t::iterator >::type make_ast(parser_t& p, stream_t& s)
 		{
-			return typename parser_t::ast<typename stream_t::iterator>::type();
+			return typename parser_t::get_ast<typename stream_t::iterator>::type();
 		}
 
 	}
