@@ -616,6 +616,15 @@ namespace parse
         }
     };
 
+    struct never : parser<never>
+    {
+        template <typename iterator_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end)
+        {
+            return false;
+        }
+    };
+
     // This namespace defines operators that are useful in cosntructing parsers 
     // using a convenient syntax (shorter than a complicated, nested template 
     // instantiation).
