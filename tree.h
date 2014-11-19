@@ -38,10 +38,16 @@ namespace parse
         //   r: leaf with a value that is another AST
         //   d: leaf with a value that is a vector of another AST
         //   e: empty AST
+        //
+        // a[0] -> l<0>
+        // *(a[0]) -> d< l<0> >
+        // (*(a[0]))[0] -> r<0, d< l<0> > >
+        // (*a)[0] -> l<0>
+        // *a -> empty
         template <typename left_t, typename right_t> struct b {};
         template <size_t i> struct l {};
         template <size_t i, typename root_t> struct r {};
-        template <size_t i, typename root_t> struct d {};
+        template <typename root_t> struct d {};
         struct e {};
 
         // This structure represents a possible match.
@@ -136,59 +142,21 @@ namespace parse
             ast<iterator_t, root_t> root;
         };
 
-        template <typename iterator_t, size_t i, typename root_t>
-        struct ast<iterator_t, d<i, root_t> >
-            : leaf<i, ast<iterator_t, d<i, root_t> > >
+        template <typename iterator_t, typename root_t>
+        struct ast<iterator_t, d<root_t> >
         {
             match<iterator_t> match;
-            std::vector<ast<iterator_t, root_t> > roots;
-        };
-
-        // A branch is a container for two other branch/leaf nodes.
-        template <typename left_t, typename right_t>
-        struct branch
-            : left_t, right_t
-        {
-            typedef left_t left_type;
-            typedef right_t right_type;
-            typedef branch<left_t, right_t> self_type;
-
-            template <size_t i>
-            struct has_key
-            {
-                static const bool value =
-                left_type::template has_key<i>::type ||
-                right_type::template has_key<i>::value;
-            };
-
-            template <size_t i>
-            struct get_leaf_type
-            {
-                typedef typename left_type::template get_leaf_type<i>::type left_base;
-                typedef typename right_type::template get_leaf_type<i>::type right_base;
-                typedef typename std::conditional<std::is_void<left_base>::value, right_base, left_base>::type type;
-            };
-
-            template <size_t i>
-            typename get_leaf_type<i>::type::value_type& operator[] (const placeholders::index<i>& ph)
-            {
-                typedef typename get_leaf_type<i>::type leaf_type;
-                static_assert(!std::is_void<leaf_type>::value, "Element index out of range");
-                return leaf_type::value;
-            }
-
-            left_type& left() { return static_cast<left_type&>(*this); }
-            right_type& right() { return static_cast<right_type&>(*this); }
+            std::vector<ast<iterator_t, root_t> > elements;
         };
 
         template <size_t i, typename spec>
-        struct make_root
+        struct make_leaf
         {
             typedef r<i, spec> type;
         };
 
         template <size_t i>
-        struct make_root<i, e>
+        struct make_leaf<i, e>
         {
             typedef l<i> type;
         };
@@ -199,29 +167,56 @@ namespace parse
             typedef ast<iterator_t, e> type;
         };
 
-        template <typename iterator_t, typename left_t, typename right_t>
+        template <typename left_t, typename right_t>
         struct make_branch
         {
-            typedef ast<iterator_t, b<left_t, right_t> > type;
+            typedef b<left_t, right_t> type;
         };
 
-        template <typename iterator_t, typename right_t>
-        struct make_branch<iterator_t, e, right_t>
+        template <typename right_t>
+        struct make_branch<e, right_t>
         {
-            typedef ast<iterator_t, right_t> type;
+            typedef right_t type;
         };
 
-        template <typename iterator_t, typename left_t>
-        struct make_branch<iterator_t, left_t, e>
+        template <typename left_t>
+        struct make_branch<left_t, e>
         {
-            typedef ast<iterator_t, left_t> type;
+            typedef left_t type;
+        };
+
+        template <>
+        struct make_branch<e, e>
+        {
+            typedef e type;
+        };
+
+        template <typename spec>
+        struct make_dynamic
+        {
+            typedef d<spec> type;
+        };
+
+        template <>
+        struct make_dynamic<e>
+        {
+            typedef e type;
+        };
+
+        template <typename iterator_t, typename spec>
+        struct from_spec
+        {
+            typedef ast<iterator_t, spec> type;
         };
 
         template <typename iterator_t>
-        struct make_branch<iterator_t, e, e>
+        struct from_spec<iterator_t, e>
         {
-            typedef ast<iterator_t, e> type;
+            typedef void type;
         };
+
+        template <typename spec> struct is_empty { static const bool value = false; };
+        template <> struct is_empty<e> { static const bool value = true; };
 
         /*
         // This meta-function returns true if the supplied type is a branch 
