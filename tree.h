@@ -145,7 +145,6 @@ namespace parse
         template <typename iterator_t, typename root_t>
         struct ast<iterator_t, d<root_t> >
         {
-            match<iterator_t> match;
             std::vector<ast<iterator_t, root_t> > elements;
         };
 

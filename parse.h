@@ -87,6 +87,12 @@ namespace parse
         {
             return captured_parser<derived_t, i>();
         }
+
+        template <typename stream_t>
+        static typename parser_ast<derived_t, typename stream_t::iterator>::type make_ast(const stream_t&)
+        {
+            return typename parser_ast<derived_t, typename stream_t::iterator>::type();
+        }
     };
 
     // This parser captures its matching input into a leaf of an AST
@@ -107,23 +113,21 @@ namespace parse
             return parser_t::parse_from(start, end);
         }
 
-        template <typename iterator_t, typename spec>
-        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, spec>& a)
+        template <typename iterator_t, size_t i, typename root_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::r<i, root_t> >& a)
         {
             a.match.start = a.match.end = start;
             a.match.matched = parser_t::parse_from(start, end, a.root);
             a.match.end = start;
-            a.match.parsed = true;
             return a.match.matched;
         }
 
-        template <typename iterator_t>
-        static bool parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>& a)
+        template <typename iterator_t, size_t i>
+        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::l<i> >& a)
         {
             a.match.start = a.match.end = start;
             a.match.matched = parser_t::parse_from(start, end);
             a.match.end = start;
-            a.match.parsed = true;
             return a.match.matched;
         }
     };

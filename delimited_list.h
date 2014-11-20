@@ -27,8 +27,8 @@ namespace parse
         {
             while (true)
             {
-                tree::from_spec<iterator_t, typename captured_elem_type::ast_spec>::type elem_ast;
-                if (!captured_elem_type::parse_from(start, end, elem_ast)) break;
+                tree::from_spec<iterator_t, typename elem_t::ast_spec>::type elem_ast;
+                if (!elem_t::parse_from(start, end, elem_ast)) break;
                 ast.elements.push_back(elem_ast);
                 if (!delim_t::parse_from(start, end)) break;
             }
@@ -53,7 +53,7 @@ namespace parse
         // expression for specifying a delimited list.  The Boost.Spirit 
         // equivalent (I think) is the '%' operator.
         template <typename elem_t, typename delim_t>
-        delimited_list<elem_t, delim_t> dlist(const elem_t&, const delim_t&)
+        delimited_list<elem_t, delim_t> operator%(const elem_t&, const delim_t&)
         {
             return delimited_list<elem_t, delim_t>();
         }
