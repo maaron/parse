@@ -48,7 +48,11 @@ namespace parse
         template <size_t i> struct l {};
         template <size_t i, typename root_t> struct r {};
         template <typename root_t> struct d {};
+        //template <typename ast_t> struct c {};
         struct e {};
+
+        template <typename iterator_t, typename spec>
+        struct from_spec;
 
         // This structure represents a possible match.
         template <typename iterator_t>
@@ -60,8 +64,8 @@ namespace parse
             match() : matched(false) {}
         };
 
-        // A leaf node in an AST.  All leaf node types (ast's with l, r and 
-        // d) can use this as a base implementation.
+        // A leaf node in an AST.  All leaf node types can use this as a 
+        // base implementation.
         template <size_t i, typename derived_t>
         struct leaf
         {
@@ -85,19 +89,21 @@ namespace parse
         template <typename t>
         struct always_false { enum { value = false }; };
 
-        template <typename iterator_t, typename root_t>
+        template <typename iterator_t, typename spec>
         struct ast
         {
-            static_assert(always_false<iterator_t>::value, "oops");
+            static_assert(always_false<iterator_t>::value, "Unknown AST specification");
         };
 
         template <typename iterator_t, typename left_t, typename right_t>
         struct ast<iterator_t, b<left_t, right_t> >
-            : ast<iterator_t, left_t>, ast<iterator_t, right_t>
         {
             typedef ast<iterator_t, left_t> left_type;
             typedef ast<iterator_t, right_t> right_type;
             typedef ast<iterator_t, b<left_t, right_t> > self_type;
+
+            left_type left;
+            right_type right;
 
             template <size_t i>
             struct has_key
@@ -122,33 +128,46 @@ namespace parse
                 static_assert(!std::is_void<leaf_type>::value, "Element index out of range");
                 return static_cast<leaf_type&>(*this);
             }
-
-            left_type& left() { return static_cast<left_type&>(*this); }
-            right_type& right() { return static_cast<right_type&>(*this); }
         };
 
         template <typename iterator_t, size_t i>
         struct ast<iterator_t, l<i> >
-            : leaf<i, ast<iterator_t, l<i> > >
+            : match<iterator_t>, leaf<i, ast<iterator_t, l<i> > >
         {
-            match<iterator_t> match;
+            template <typename parser_t>
+            bool parse_from(iterator_t& start, iterator_t& end)
+            {
+                return parser_t::parse_from(start, end);
+            }
         };
 
         template <typename iterator_t, size_t i, typename root_t>
         struct ast<iterator_t, r<i, root_t> >
-            : leaf<i, ast<iterator_t, r<i, root_t> > >
+            : match<iterator_t>, leaf<i, ast<iterator_t, r<i, root_t> > >
         {
-            match<iterator_t> match;
-            ast<iterator_t, root_t> root;
+            typedef ast<iterator_t, r<i, root_t> > self_type;
+
+            typename from_spec<iterator_t, root_t>::type root;
+
+            template <typename parser_t>
+            bool parse_from(iterator_t& start, iterator_t& end)
+            {
+                return parser_t::parse_from(start, end, root);
+            }
         };
 
         template <typename iterator_t, typename root_t>
         struct ast<iterator_t, d<root_t> >
         {
-            match<iterator_t> match;
-            std::vector<ast<iterator_t, root_t> > elements;
+            ast<iterator_t, root_t> partial;
+            std::vector<ast<iterator_t, root_t> > matches;
         };
-
+        /*
+        template <typename iterator_t, typename ast_t>
+        struct ast<iterator_t, c<ast_t> > : ast_t
+        {
+        };
+        */
         template <size_t i, typename spec>
         struct make_leaf
         {
@@ -167,28 +186,24 @@ namespace parse
             typedef ast<iterator_t, e> type;
         };
 
+        template <typename t>
+        struct is_branch_or_leaf
+        {
+            static const bool value = false;
+        };
+        template <size_t i> struct is_branch_or_leaf<l<i> > { static const bool value = true; };
+        template <size_t i, typename root_t> struct is_branch_or_leaf<r<i, root_t> > { static const bool value = true; };
+        template <typename left_t, typename right_t> struct is_branch_or_leaf<b<left_t, right_t> > { static const bool value = true; };
+
         template <typename left_t, typename right_t>
         struct make_branch
         {
-            typedef b<left_t, right_t> type;
-        };
-
-        template <typename right_t>
-        struct make_branch<e, right_t>
-        {
-            typedef right_t type;
-        };
-
-        template <typename left_t>
-        struct make_branch<left_t, e>
-        {
-            typedef left_t type;
-        };
-
-        template <>
-        struct make_branch<e, e>
-        {
-            typedef e type;
+            static const bool left = is_branch_or_leaf<left_t>::value;
+            static const bool right = is_branch_or_leaf<right_t>::value;
+            
+            typedef typename std::conditional<left,
+                typename std::conditional<right, b<left_t, right_t>, left_t>::type,
+                typename std::conditional<right, right_t, e>::type>::type type;
         };
 
         template <typename spec>
@@ -206,7 +221,25 @@ namespace parse
         template <typename iterator_t, typename spec>
         struct from_spec
         {
-            typedef ast<iterator_t, spec> type;
+            typedef spec type;
+        };
+
+        template <typename iterator_t, typename left_t, typename right_t>
+        struct from_spec<iterator_t, b<left_t, right_t> >
+        {
+            typedef ast<iterator_t, b<left_t, right_t> > type;
+        };
+
+        template <typename iterator_t, size_t i, typename root_t>
+        struct from_spec<iterator_t, r<i, root_t> >
+        {
+            typedef ast<iterator_t, r<i, root_t> > type;
+        };
+
+        template <typename iterator_t, size_t i>
+        struct from_spec<iterator_t, l<i> >
+        {
+            typedef ast<iterator_t, l<i> > type;
         };
 
         template <typename iterator_t>
@@ -214,7 +247,13 @@ namespace parse
         {
             typedef void type;
         };
-
+        /*
+        template <typename iterator_t, typename ast_t>
+        struct from_spec<iterator_t, c<ast_t> >
+        {
+            typedef ast_t type;
+        };
+        */
         template <typename spec> struct is_empty { static const bool value = false; };
         template <> struct is_empty<e> { static const bool value = true; };
 
