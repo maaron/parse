@@ -3,6 +3,7 @@
 #include "list.h"
 #include <memory>
 #include <vector>
+#include <memory>
 
 namespace parse
 {
@@ -48,7 +49,7 @@ namespace parse
         template <size_t i> struct l {};
         template <size_t i, typename root_t> struct r {};
         template <typename root_t> struct d {};
-        //template <typename ast_t> struct c {};
+        template <typename spec> struct ref {};
         struct e {};
 
         template <typename iterator_t, typename spec>
@@ -93,6 +94,12 @@ namespace parse
         struct ast
         {
             static_assert(always_false<iterator_t>::value, "Unknown AST specification");
+        };
+
+        template <typename iterator_t>
+        struct ast<iterator_t, e>
+        {
+            static_assert(always_false<iterator_t>::value, "AST is empty");
         };
 
         template <typename iterator_t, typename left_t, typename right_t>
@@ -162,6 +169,21 @@ namespace parse
             ast<iterator_t, root_t> partial;
             std::vector<ast<iterator_t, root_t> > matches;
         };
+
+        template <typename iterator_t, typename parser_t>
+        struct ast<iterator_t, ref<parser_t> >
+        {
+            typedef typename from_spec<iterator_t, typename parser_t::ast_spec>::type ast_t;
+
+            std::shared_ptr<ast_t> ptr;
+
+            ast_t& get()
+            {
+                if (ptr.get() == nullptr) ptr.reset(new ast_t());
+                return *ptr;
+            }
+        };
+
         /*
         template <typename iterator_t, typename ast_t>
         struct ast<iterator_t, c<ast_t> > : ast_t
@@ -218,6 +240,12 @@ namespace parse
             typedef e type;
         };
 
+        template <typename parser_t>
+        struct make_reference
+        {
+            typedef ref<parser_t> type;
+        };
+
         template <typename iterator_t, typename spec>
         struct from_spec
         {
@@ -242,18 +270,24 @@ namespace parse
             typedef ast<iterator_t, l<i> > type;
         };
 
+        template <typename iterator_t, typename spec>
+        struct from_spec<iterator_t, d<spec> >
+        {
+            typedef ast<iterator_t, d<spec> > type;
+        };
+
         template <typename iterator_t>
         struct from_spec<iterator_t, e>
         {
             typedef void type;
         };
-        /*
+
         template <typename iterator_t, typename ast_t>
-        struct from_spec<iterator_t, c<ast_t> >
+        struct from_spec<iterator_t, ref<ast_t> >
         {
-            typedef ast_t type;
+            typedef ast<iterator_t, ref<ast_t> > type;
         };
-        */
+
         template <typename spec> struct is_empty { static const bool value = false; };
         template <> struct is_empty<e> { static const bool value = true; };
 
