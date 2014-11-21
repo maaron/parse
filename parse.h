@@ -106,7 +106,7 @@ namespace parse
         static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::r<i, spec> >& a)
         {
             a.start = a.end = start;
-            a.matched = parser_t::parse_from(start, end, a.root);
+            a.matched = parser_t::parse_from(start, end, a);
             a.end = start;
             return a.matched;
         }
@@ -173,8 +173,8 @@ namespace parse
             template <typename iterator_t, typename ast_t>
             static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
-                return t1::parse_from(start, end, a.left) ||
-                    t2::parse_from(start, end, a.right);
+                return t1::parse_from(start, end, a.left()) ||
+                    t2::parse_from(start, end, a.right());
             }
         };
 
@@ -248,8 +248,8 @@ namespace parse
             template <typename iterator_t, typename ast_t>
             static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
-                return t1::parse_from(start, end, a.left) &&
-                    t2::parse_from(start, end, a.right);
+                return t1::parse_from(start, end, a.left()) &&
+                    t2::parse_from(start, end, a.right());
             }
         };
 

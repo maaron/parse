@@ -65,6 +65,9 @@ namespace parse
             match() : matched(false) {}
         };
 
+        template <typename iterator_t, typename base_t>
+        struct root_match : base_t, match<iterator_t> {};
+
         // A leaf node in an AST.  All leaf node types can use this as a 
         // base implementation.
         template <size_t i, typename derived_t>
@@ -104,13 +107,11 @@ namespace parse
 
         template <typename iterator_t, typename left_t, typename right_t>
         struct ast<iterator_t, b<left_t, right_t> >
+            : ast<iterator_t, left_t>, ast<iterator_t, right_t>
         {
             typedef ast<iterator_t, left_t> left_type;
             typedef ast<iterator_t, right_t> right_type;
             typedef ast<iterator_t, b<left_t, right_t> > self_type;
-
-            left_type left;
-            right_type right;
 
             template <size_t i>
             struct has_key
@@ -135,32 +136,64 @@ namespace parse
                 static_assert(!std::is_void<leaf_type>::value, "Element index out of range");
                 return static_cast<leaf_type&>(*this);
             }
+
+            right_type& right() { return static_cast<right_type&>(*this); }
+            left_type& left() { return static_cast<left_type&>(*this); }
         };
 
         template <typename iterator_t, size_t i>
         struct ast<iterator_t, l<i> >
-            : match<iterator_t>, leaf<i, ast<iterator_t, l<i> > >
         {
-            template <typename parser_t>
-            bool parse_from(iterator_t& start, iterator_t& end)
+            typedef ast<iterator_t, l<i> > self_t;
+
+            static const size_t idx = i;
+
+            template <size_t i>
+            struct has_key
             {
-                return parser_t::parse_from(start, end);
+                static const bool value = i == idx;
+            };
+
+            template <size_t i> struct get_leaf_type { typedef void type; };
+            template <> struct get_leaf_type<idx> { typedef self_t type; };
+
+            self_t& operator[] (const placeholders::index<idx>&)
+            {
+                return *this;
             }
+
+            iterator_t start, end;
+            bool matched;
+
+            ast() : matched(false) {}
         };
 
         template <typename iterator_t, size_t i, typename root_t>
         struct ast<iterator_t, r<i, root_t> >
-            : match<iterator_t>, leaf<i, ast<iterator_t, r<i, root_t> > >
+            : ast<iterator_t, root_t>
         {
-            typedef ast<iterator_t, r<i, root_t> > self_type;
+            typedef ast<iterator_t, r<i, root_t> > self_t;
 
-            typename from_spec<iterator_t, root_t>::type root;
+            static const size_t idx = i;
 
-            template <typename parser_t>
-            bool parse_from(iterator_t& start, iterator_t& end)
+            template <size_t i>
+            struct has_key
             {
-                return parser_t::parse_from(start, end, root);
+                static const bool value = i == idx;
+            };
+
+            template <size_t i> struct get_leaf_type { typedef void type; };
+            template <> struct get_leaf_type<idx> { typedef self_t type; };
+
+            self_t& operator[] (const placeholders::index<idx>&)
+            {
+                return *this;
             }
+
+            iterator_t start, end;
+            bool matched;
+
+            ast() : matched(false) {}
         };
 
         template <typename iterator_t, typename root_t>
