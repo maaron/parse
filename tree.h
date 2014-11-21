@@ -200,7 +200,7 @@ namespace parse
         {
             static const bool left = is_branch_or_leaf<left_t>::value;
             static const bool right = is_branch_or_leaf<right_t>::value;
-            
+
             typedef typename std::conditional<left,
                 typename std::conditional<right, b<left_t, right_t>, left_t>::type,
                 typename std::conditional<right, right_t, e>::type>::type type;

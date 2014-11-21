@@ -76,6 +76,12 @@ namespace parse
         {
             return captured_parser<derived_t, i>();
         }
+
+        template <typename stream_t>
+        static typename parser_ast<derived_t, typename stream_t::iterator>::type make_ast(const stream_t&)
+        {
+            return typename parser_ast<derived_t, typename stream_t::iterator>::type();
+        }
     };
 
     // This parser captures its matching input into a leaf of an AST
