@@ -112,6 +112,9 @@ namespace parse
             typedef ast<iterator_t, left_t> left_type;
             typedef ast<iterator_t, right_t> right_type;
             typedef ast<iterator_t, b<left_t, right_t> > self_type;
+            typedef self_type value_type;
+
+            value_type value() { return *this; }
 
             template <size_t i>
             struct has_key
@@ -130,11 +133,11 @@ namespace parse
             };
 
             template <size_t i>
-            typename get_leaf_type<i>::type& operator[] (const placeholders::index<i>& ph)
+            typename get_leaf_type<i>::type::value_type& operator[] (const placeholders::index<i>& ph)
             {
                 typedef typename get_leaf_type<i>::type leaf_type;
                 static_assert(!std::is_void<leaf_type>::value, "Element index out of range");
-                return static_cast<leaf_type&>(*this);
+                return static_cast<leaf_type&>(*this).value();
             }
 
             right_type& right() { return static_cast<right_type&>(*this); }
@@ -145,6 +148,10 @@ namespace parse
         struct ast<iterator_t, l<i> >
         {
             typedef ast<iterator_t, l<i> > self_t;
+            typedef match<iterator_t> value_type;
+            value_type _value;
+
+            value_type& value() { return _value; }
 
             static const size_t idx = i;
 
@@ -157,22 +164,20 @@ namespace parse
             template <size_t i> struct get_leaf_type { typedef void type; };
             template <> struct get_leaf_type<idx> { typedef self_t type; };
 
-            self_t& operator[] (const placeholders::index<idx>&)
+            value_type& operator[] (const placeholders::index<idx>&)
             {
-                return *this;
+                return _value;
             }
-
-            iterator_t start, end;
-            bool matched;
-
-            ast() : matched(false) {}
         };
 
         template <typename iterator_t, size_t i, typename root_t>
         struct ast<iterator_t, r<i, root_t> >
-            : ast<iterator_t, root_t>
         {
             typedef ast<iterator_t, r<i, root_t> > self_t;
+            typedef root_match<iterator_t, ast<iterator_t, root_t> > value_type;
+            value_type _value;
+
+            value_type& value() { return _value; }
 
             static const size_t idx = i;
 
@@ -185,15 +190,10 @@ namespace parse
             template <size_t i> struct get_leaf_type { typedef void type; };
             template <> struct get_leaf_type<idx> { typedef self_t type; };
 
-            self_t& operator[] (const placeholders::index<idx>&)
+            value_type& operator[] (const placeholders::index<idx>&)
             {
-                return *this;
+                return _value;
             }
-
-            iterator_t start, end;
-            bool matched;
-
-            ast() : matched(false) {}
         };
 
         template <typename iterator_t, typename root_t>

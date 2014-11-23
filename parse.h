@@ -103,8 +103,9 @@ namespace parse
         }
 
         template <typename iterator_t, size_t i, typename spec>
-        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::r<i, spec> >& a)
+        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::r<i, spec> >& leaf)
         {
+            auto& a = leaf.value();
             a.start = a.end = start;
             a.matched = parser_t::parse_from(start, end, a);
             a.end = start;
@@ -112,8 +113,9 @@ namespace parse
         }
 
         template <typename iterator_t, size_t i>
-        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::l<i> >& a)
+        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::l<i> >& leaf)
         {
+            auto& a = leaf.value();
             a.start = a.end = start;
             a.matched = parser_t::parse_from(start, end);
             a.end = start;
