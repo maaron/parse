@@ -41,6 +41,11 @@ namespace parse
         // the associated AST type is not defined.
         template <typename parser_t> struct ref {};
 
+        // Custom AST spec.  This allows the caller to specify a custom type 
+        // as the AST for a custom parser type.  The type parameter is a 
+        // template class that accepts an iterator type parameter.
+        template <template <typename> class ast_t> struct a {};
+
         // Empty spec.  This is used to indicate when an AST is "void".  It 
         // may be possible to just replace the usage of e with void...
         struct e {};
@@ -270,10 +275,10 @@ namespace parse
             typedef ref<parser_t> type;
         };
 
-        template <typename iterator_t, typename spec>
-        struct from_spec
+        template <typename iterator_t, template <typename> class ast_t>
+        struct from_spec<iterator_t, a<ast_t> >
         {
-            typedef spec type;
+            typedef ast_t<iterator_t> type;
         };
 
         template <typename iterator_t, typename left_t, typename right_t>

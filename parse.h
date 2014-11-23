@@ -22,7 +22,8 @@ namespace parse
     struct parser_ast
     {
         //typedef typename parser_t::template get_ast<iterator_t>::type type;
-        typedef tree::ast<iterator_t, typename parser_t::ast_spec> type;
+        //typedef tree::ast<iterator_t, typename parser_t::ast_spec> type;
+        typedef typename tree::from_spec<iterator_t, typename parser_t::ast_spec>::type type;
     };
 
     // Base class for all parsers.  Provides parse_from methods that handle 
