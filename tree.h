@@ -10,52 +10,48 @@ namespace parse
 
     namespace tree
     {
-        // AST Structure:
-        // branch contains:
-        //   left branch/leaf
-        //   right branch/leaf
-        // leaf contains:
-        //   ID that is unique within the tree
-        //   match information (start, end, matched)
-        
-        //   optional meta-function taking an iterator type to another type (which may contain additional AST's)
-        // root contains:
-        //   iterator type
-        //   branch/leaf
 
-        // Meta Functions:
-        //   make_root(iterator, leaf) - creates a new AST with a single leaf
-        //   make_root(iterator, branch) - creates a new AST with a single branch
-        //   join(iterator, leaf/branch, leaf/branch) - creates a new AST by joining the specified branches/leaves.
+        // AST "spec" definitions.  These classes are used to describe the 
+        // structure of an AST, but don't themselves have any data/function 
+        // members.  Together with the iterator type, the spec completely 
+        // defines an AST.
 
-        // AST structure definitions.  These types are used to describe the 
-        // structure of an AST.  They don't contain the AST data themselves, 
-        // in order to limit the size of the template instanciation.  In 
-        // this light, these can be seen as a compressed version of the real 
-        // AST type.  The compression is essentially due to the iterator 
-        // type being factored out.
-        //   b: branch (contains a left and right node)
-        //   l: leaf
-        //   r: leaf with a value that is another AST
-        //   d: leaf with a value that is a vector of another AST
-        //   e: empty AST
-        //
-        // a[0] -> l<0>
-        // *(a[0]) -> d< l<0> >
-        // (*(a[0]))[0] -> r<0, d< l<0> > >
-        // (*a)[0] -> l<0>
-        // *a -> empty
+        // Branch spec.  This describes a binary tree structure with left 
+        // and right branches.
         template <typename left_t, typename right_t> struct b {};
+
+        // Leaf spec.  This describes a terminal node in a binary tree.  It 
+        // can be a left/right piece of a branch spec.
         template <size_t i> struct l {};
+
+        // Root spec.  This is the same as a leaf spec, but also specifies 
+        // an additional spec type.  This allows a leaf to contain a 
+        // sub-tree with indeces that are independent of the parent.
         template <size_t i, typename root_t> struct r {};
+
+        // Dynamic root spec.  This is like the root spec, but indicates 
+        // that the leaf contains a dynamic list of sub-trees of the given 
+        // spec type.
         template <typename root_t> struct d {};
-        template <typename spec> struct ref {};
+
+        // Reference spec.  This is similar to the root spec, except that 
+        // the parser type is given, instead of an AST spec.  This is used 
+        // when creating recursive parsers.  In those cases, the root spec 
+        // can't be used because the parser type is be incomplete, and thus 
+        // the associated AST type is not defined.
+        template <typename parser_t> struct ref {};
+
+        // Empty spec.  This is used to indicate when an AST is "void".  It 
+        // may be possible to just replace the usage of e with void...
         struct e {};
 
+        // This meta-function returns an AST type given an iterator and spec 
+        //type.
         template <typename iterator_t, typename spec>
         struct from_spec;
 
-        // This structure represents a possible match.
+        // This structure represents a possible match.  This is used by leaf 
+        // nodes to indicate where in the input data a match occurred.
         template <typename iterator_t>
         struct match
         {
@@ -65,30 +61,10 @@ namespace parse
             match() : matched(false) {}
         };
 
+        // This is similar to match, but used by root specs to create a type 
+        // that includes match information and the sub-tree.
         template <typename iterator_t, typename base_t>
         struct root_match : base_t, match<iterator_t> {};
-
-        // A leaf node in an AST.  All leaf node types can use this as a 
-        // base implementation.
-        template <size_t i, typename derived_t>
-        struct leaf
-        {
-            static const size_t idx = i;
-
-            template <size_t i>
-            struct has_key
-            {
-                static const bool value = i == idx;
-            };
-
-            template <size_t i> struct get_leaf_type { typedef void type; };
-            template <> struct get_leaf_type<idx> { typedef derived_t type; };
-
-            derived_t& operator[] (const placeholders::index<idx>&)
-            {
-                return static_cast<derived_t&>(*this);
-            }
-        };
 
         template <typename t>
         struct always_false { enum { value = false }; };
@@ -105,6 +81,12 @@ namespace parse
             static_assert(always_false<iterator_t>::value, "AST is empty");
         };
 
+        // AST branch implementation.  This structure represents an AST 
+        // composed of two branches that are themselves either additional 
+        // branches or leaves.  The tree is composed using inheritance such 
+        // that obtaining the left or right branch is just a cast.  All 
+        // leaves of the tree are accessible via this class by calling the 
+        // appropriate operator[] overload.
         template <typename iterator_t, typename left_t, typename right_t>
         struct ast<iterator_t, b<left_t, right_t> >
             : ast<iterator_t, left_t>, ast<iterator_t, right_t>
@@ -114,8 +96,8 @@ namespace parse
             typedef ast<iterator_t, b<left_t, right_t> > self_type;
             typedef self_type value_type;
 
-            value_type value() { return *this; }
-
+            // Meta-function that returns true if the tree contains a leaf 
+            // with the specified index (either left or right branches).
             template <size_t i>
             struct has_key
             {
@@ -124,6 +106,8 @@ namespace parse
                 right_type::template has_key<i>::value;
             };
 
+            // Meta-function that returns the type of the branch/leaf given 
+            // its index.  If neither branch contains the index, void is returned.
             template <size_t i>
             struct get_leaf_type
             {
@@ -132,29 +116,36 @@ namespace parse
                 typedef typename std::conditional<std::is_void<left_base>::value, right_base, left_base>::type type;
             };
 
+            // Returns the leaf at the specified index, or throws a 
+            // static_assert if the index doesn't exist.
             template <size_t i>
             typename get_leaf_type<i>::type::value_type& operator[] (const placeholders::index<i>& ph)
             {
                 typedef typename get_leaf_type<i>::type leaf_type;
                 static_assert(!std::is_void<leaf_type>::value, "Element index out of range");
-                return static_cast<leaf_type&>(*this).value();
+                return static_cast<leaf_type&>(*this).value;
             }
 
+            // Returns the left/right branch.
             right_type& right() { return static_cast<right_type&>(*this); }
             left_type& left() { return static_cast<left_type&>(*this); }
         };
 
+        // AST leaf implementation.
         template <typename iterator_t, size_t i>
         struct ast<iterator_t, l<i> >
         {
             typedef ast<iterator_t, l<i> > self_t;
             typedef match<iterator_t> value_type;
-            value_type _value;
+            
+            // The match structure associated with the leaf.
+            value_type value;
 
-            value_type& value() { return _value; }
-
+            // Unique (within the AST tree) index of this leaf.
             static const size_t idx = i;
 
+            // Meta-function that returns true if a leaf with the given 
+            // index exists.
             template <size_t i>
             struct has_key
             {
@@ -166,18 +157,24 @@ namespace parse
 
             value_type& operator[] (const placeholders::index<idx>&)
             {
-                return _value;
+                return value;
             }
         };
 
+        // AST root implementation.  This is very similar to the leaf 
+        // implementation above, and has some identical members, as 
+        // accessing a root or leaf from an AST tree works the same way.  
+        // Normally, this could be factored out into a base class, but 
+        // because inheritance is used to compose AST branches, this would 
+        // introduce hidden data members.
         template <typename iterator_t, size_t i, typename root_t>
         struct ast<iterator_t, r<i, root_t> >
         {
             typedef ast<iterator_t, r<i, root_t> > self_t;
             typedef root_match<iterator_t, ast<iterator_t, root_t> > value_type;
-            value_type _value;
 
-            value_type& value() { return _value; }
+            // Match and root structure associated with this root node.
+            value_type value;
 
             static const size_t idx = i;
 
@@ -192,7 +189,7 @@ namespace parse
 
             value_type& operator[] (const placeholders::index<idx>&)
             {
-                return _value;
+                return value;
             }
         };
 
@@ -217,12 +214,6 @@ namespace parse
             }
         };
 
-        /*
-        template <typename iterator_t, typename ast_t>
-        struct ast<iterator_t, c<ast_t> > : ast_t
-        {
-        };
-        */
         template <size_t i, typename spec>
         struct make_leaf
         {
@@ -324,71 +315,6 @@ namespace parse
         template <typename spec> struct is_empty { static const bool value = false; };
         template <> struct is_empty<e> { static const bool value = true; };
 
-        /*
-        // This meta-function returns true if the supplied type is a branch 
-        // or a leaf.
-        template <typename t>
-        struct is_tree { static const bool value = false; };
-
-        template <typename t1, typename t2>
-        struct is_tree<branch<t1, t2> > { static const bool value = true; };
-
-        template <size_t i, typename t>
-        struct is_tree<leaf<i, t> > { static const bool value = true; };
-
-        // This meta-function returns a bool indicating whether the branch 
-        // contains a given key.
-        template <typename branch_t, size_t key>
-        struct contains_key;
-
-        template <typename left_t, typename right_t, size_t key>
-        struct contains_key<branch<left_t, right_t>, key>
-        {
-            static const bool value = 
-                contains_key<left_t, key>::value ||
-                contains_key<right_t, key>::value;
-        };
-        template <size_t i, typename value_t, size_t key>
-        struct contains_key<leaf<i, value_t>, key>
-        {
-            static const bool value = i == key;
-        };
-
-        // This meta-function is used to determine whether two AST's have 
-        // common indeces.
-        template <typename branch1_t, typename branch2_t>
-        struct is_unique
-        {
-            static const bool value =
-            is_unique<typename branch1_t::left_type, branch2_t>::value &&
-            is_unique<typename branch1_t::right_type, branch2_t>::value;
-        };
-        template <size_t i, typename value_t, typename branch_t>
-        struct is_unique<leaf<i, value_t>, branch_t>
-        {
-            static const bool value = !contains_key<branch_t, i>::value;
-        };
-        template <typename branch_t, size_t i, typename value_t>
-        struct is_unique<branch_t, leaf<i, value_t> >
-        {
-            static const bool value = !contains_key<branch_t, i>::value;
-        };
-        template <size_t i1, typename value1_t, size_t i2, typename value2_t>
-        struct is_unique<leaf<i1, value1_t>, leaf<i2, value2_t> >
-        {
-            static const bool value = i1 != i2;
-        };
-
-        // This meta-function creates a new AST type by joining to AST's 
-        // into a branch.  It also verifies that the indeces are unique.
-        template <typename branch1_t, typename branch2_t>
-        struct join
-        {
-            static_assert(is_unique<branch1_t, branch2_t>::value, "Element indeces not unique.");
-            typedef typename branch<branch1_t, branch2_t> type;
-        };
-        */
-
         template <typename parser_ast_t, typename iterator_t>
         struct repetition
         {
@@ -442,37 +368,7 @@ namespace parse
             else if (rep.matches.size() > 0) return last_match(rep.matches.back());
             else return rep.start;
         }
-        /*
-        template <typename branch_t>
-        struct branch_iterator
-        {
-            typedef typename branch_iterator<typename branch_t::left_type>::type type;
-        };
 
-        template <size_t i, typename value_t>
-        struct branch_iterator<leaf<i, value_t> >
-        {
-            typedef typename value_t::iterator type;
-        };
-
-        template <typename t1, typename t2>
-        typename branch_iterator<t1>::type last_match(branch<t1, t2>& b)
-        {
-            return max(last_match(b.left()), last_match(b.right()));
-        }
-
-        template <size_t i, typename t1>
-        typename branch_iterator<leaf<i, t1> >::type last_match(leaf<i, t1>& b)
-        {
-            return last_match(b.value);
-        }
-        
-        template <typename iterator_t, typename base_t>
-        iterator_t last_match(base<iterator_t, base_t>& b)
-        {
-            return b.matched ? b.end : b.start;
-        }
-        */
         template <typename parser_t, typename stream_t>
 		typename parser_t::template get_ast< typename stream_t::iterator >::type make_ast(parser_t& p, stream_t& s)
 		{
