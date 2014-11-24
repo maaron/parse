@@ -353,7 +353,8 @@ namespace parse
             {
                 ast_t partial;
                 if (start == end) break;
-                if (!parser_t::parse_from(start, end, partial) || partial.start == partial.end)
+                auto tmp = start;
+                if (!parser_t::parse_from(start, end, partial) || tmp == start)
                 {
                     tree.partial = partial;
                     break;
