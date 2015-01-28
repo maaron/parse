@@ -3,13 +3,6 @@
 namespace parse
 {
 
-    // This meta-function returns the specified "t" type if non-void, and 
-    // default_t otherwise.
-    template <typename t, typename default_t>
-    struct void_default { typedef t type; };
-    template <typename default_t>
-    struct void_default<void, default_t> { typedef default_t type; };
-
     // This parser matches a delimited list.  It works very similar to a common
     // string split algorithm.  It matches as many elem_t's as possible, with
     // each one preceeding a delim_t.  The last element may not preceed a
