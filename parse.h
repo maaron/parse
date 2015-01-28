@@ -22,18 +22,8 @@ namespace parse
     struct parser_ast
     {
         //typedef typename parser_t::template get_ast<iterator_t>::type type;
-        typedef tree::ast<iterator_t, typename parser_t::ast_spec> type;
-    };
-
-    // This meta-function returns true if the specified parser has a 
-    // tree::leaf or tree::branch AST.  It is used in generating static AST 
-    // data structures using sequence and/or alternate expressions (i.e., 
-    // ">>", "|" operators).
-    template <typename parser_t, typename iterator_t>
-    struct has_tree_ast
-    {
-        typedef typename parser_ast<parser_t, iterator_t>::type ast_type;
-        static const bool value = tree::is_tree<ast_type>::value;
+        //typedef tree::ast<iterator_t, typename parser_t::ast_spec> type;
+        typedef typename tree::from_spec<iterator_t, typename parser_t::ast_spec>::type type;
     };
 
     // Base class for all parsers.  Provides parse_from methods that handle 
@@ -113,22 +103,24 @@ namespace parse
             return parser_t::parse_from(start, end);
         }
 
-        template <typename iterator_t, size_t i, typename root_t>
-        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::r<i, root_t> >& a)
+        template <typename iterator_t, size_t i, typename spec>
+        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::r<i, spec> >& leaf)
         {
-            a.match.start = a.match.end = start;
-            a.match.matched = parser_t::parse_from(start, end, a.root);
-            a.match.end = start;
-            return a.match.matched;
+            auto& a = leaf.value;
+            a.start = a.end = start;
+            a.matched = parser_t::parse_from(start, end, a);
+            a.end = start;
+            return a.matched;
         }
 
         template <typename iterator_t, size_t i>
-        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::l<i> >& a)
+        static bool parse_internal(iterator_t& start, iterator_t& end, tree::ast<iterator_t, tree::l<i> >& leaf)
         {
-            a.match.start = a.match.end = start;
-            a.match.matched = parser_t::parse_from(start, end);
-            a.match.end = start;
-            return a.match.matched;
+            auto& a = leaf.value;
+            a.start = a.end = start;
+            a.matched = parser_t::parse_from(start, end);
+            a.end = start;
+            return a.matched;
         }
     };
 
@@ -140,49 +132,6 @@ namespace parse
 
     template <typename parser_t>
     struct token_type<parser_t, true> { typedef typename parser_t::token_type type; };
-
-    /*
-    // Creates an AST branch by joining the AST's from two parsers
-    template <typename t1, typename t2, typename iterator_t>
-    struct joined_ast
-    {
-        typedef typename tree::join<
-            typename parser_ast<t1, iterator_t>::type,
-            typename parser_ast<t2, iterator_t>::type
-        >::type type;
-    };
-
-    // Creates an AST branch given two types.  If they are both branches 
-    // (leaves or branches), returns a joined branch.  Otherwise, returns 
-    // one of the two arguments that is a branch (or leaf) or void if 
-    // neither is a branch.
-    template <typename t1, typename t2, typename iterator_t, typename enable = void>
-    struct make_branch_ast;
-
-    template <typename t1, typename t2, typename iterator_t>
-    struct make_branch_ast<t1, t2, iterator_t, typename std::enable_if<has_tree_ast<t1, iterator_t>::value && has_tree_ast<t2, iterator_t>::value>::type>
-    {
-        typedef typename joined_ast<t1, t2, iterator_t>::type type;
-    };
-
-    template <typename t1, typename t2, typename iterator_t>
-    struct make_branch_ast<t1, t2, iterator_t, typename std::enable_if<!has_tree_ast<t1, iterator_t>::value && has_tree_ast<t2, iterator_t>::value>::type>
-    {
-        typedef typename parser_ast<t2, iterator_t>::type type;
-    };
-
-    template <typename t1, typename t2, typename iterator_t>
-    struct make_branch_ast<t1, t2, iterator_t, typename std::enable_if<has_tree_ast<t1, iterator_t>::value && !has_tree_ast<t2, iterator_t>::value>::type>
-    {
-        typedef typename parser_ast<t1, iterator_t>::type type;
-    };
-
-    template <typename t1, typename t2, typename iterator_t>
-    struct make_branch_ast<t1, t2, iterator_t, typename std::enable_if<!has_tree_ast<t1, iterator_t>::value && !has_tree_ast<t2, iterator_t>::value>::type>
-    {
-        typedef void type;
-    };
-    */
 
     // A parser that matches if either of the two supplied parsers match.  The 
     // second parser won't be tried if the first matches.  This class supports
@@ -213,8 +162,8 @@ namespace parse
         {
             return parse_internal_map<
                 iterator_t, 
-                has_tree_ast<t1, iterator_t>::value,
-                has_tree_ast<t2, iterator_t>::value
+                !tree::is_empty<typename t1::ast_spec>::value,
+                !tree::is_empty<typename t2::ast_spec>::value
             >::parse_internal(start, end, a);
         }
 
@@ -224,9 +173,8 @@ namespace parse
         template <typename iterator_t>
         struct parse_internal_map<iterator_t, true, true>
         {
-            template <typename iterator_t>
-            static typename std::enable_if<has_tree_ast<t1, iterator_t>::value && has_tree_ast<t2, iterator_t>::value, bool>::type
-                parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>::type& a)
+            template <typename iterator_t, typename ast_t>
+            static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
                 return t1::parse_from(start, end, a.left()) ||
                     t2::parse_from(start, end, a.right());
@@ -236,8 +184,8 @@ namespace parse
         template <typename iterator_t>
         struct parse_internal_map<iterator_t, true, false>
         {
-            template <typename iterator_t>
-            static bool parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>::type& a)
+            template <typename iterator_t, typename ast_t>
+            static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
                 return t1::parse_from(start, end, a) ||
                     t2::parse_from(start, end);
@@ -247,8 +195,8 @@ namespace parse
         template <typename iterator_t>
         struct parse_internal_map<iterator_t, false, true>
         {
-            template <typename iterator_t>
-            static bool parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>::type& a)
+            template <typename iterator_t, typename ast_t>
+            static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
                 return t1::parse_from(start, end) ||
                     t2::parse_from(start, end, a);
@@ -289,8 +237,8 @@ namespace parse
         {
             return parse_internal_map<
                 iterator_t, 
-                has_tree_ast<t1, iterator_t>::value,
-                has_tree_ast<t2, iterator_t>::value
+                !tree::is_empty<typename t1::ast_spec>::value,
+                !tree::is_empty<typename t2::ast_spec>::value
             >::parse_internal(start, end, a);
         }
 
@@ -300,8 +248,8 @@ namespace parse
         template <typename iterator_t>
         struct parse_internal_map<iterator_t, true, true>
         {
-            template <typename iterator_t>
-            static bool parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>::type& a)
+            template <typename iterator_t, typename ast_t>
+            static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
                 return t1::parse_from(start, end, a.left()) &&
                     t2::parse_from(start, end, a.right());
@@ -311,8 +259,8 @@ namespace parse
         template <typename iterator_t>
         struct parse_internal_map<iterator_t, true, false>
         {
-            template <typename iterator_t>
-            static bool parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>::type& a)
+            template <typename iterator_t, typename ast_t>
+            static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
                 return t1::parse_from(start, end, a) &&
                     t2::parse_from(start, end);
@@ -322,8 +270,8 @@ namespace parse
         template <typename iterator_t>
         struct parse_internal_map<iterator_t, false, true>
         {
-            template <typename iterator_t>
-            static bool parse_internal(iterator_t& start, iterator_t& end, typename tree::ast<iterator_t, ast_spec>::type& a)
+            template <typename iterator_t, typename ast_t>
+            static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& a)
             {
                 return t1::parse_from(start, end) &&
                     t2::parse_from(start, end, a);
@@ -340,28 +288,10 @@ namespace parse
     template <typename parser_t>
     struct zero_or_more : public parser< zero_or_more<parser_t> >
     {
-        template <typename iterator_t, typename parser_ast_t>
-        struct create_ast
-        {
-            typedef tree::repetition<parser_ast_t, iterator_t> type;
-        };
-
-        template <typename iterator_t>
-        struct create_ast<iterator_t, void>
-        {
-            typedef void type;
-        };
-
         typedef typename tree::make_dynamic<typename parser_t::ast_spec>::type ast_spec;
 
-        template <typename iterator_t>
-        struct get_ast
-        {
-            typedef typename create_ast<iterator_t, typename parser_ast<parser_t, iterator_t>::type>::type type;
-        };
-
-        template <typename iterator_t>
-        static bool parse_internal(iterator_t& start, iterator_t& end, typename get_ast<iterator_t>::type& ast)
+        template <typename iterator_t, typename ast_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& ast)
         {
             typedef typename parser_ast<parser_t, iterator_t>::type ast_t;
 
@@ -400,28 +330,12 @@ namespace parse
     template <typename parser_t, size_t min, size_t max = SIZE_MAX>
     struct repetition : public parser< repetition<parser_t, min, max> >
     {
-        template <typename iterator_t, typename parser_ast_t>
-        struct create_ast
-        {
-            typedef tree::repetition<parser_ast_t, iterator_t> type;
-        };
+        typedef typename tree::make_dynamic<typename parser_t::ast_spec>::type ast_spec;
 
-        template <typename iterator_t>
-        struct create_ast<iterator_t, void>
+        template <typename iterator_t, typename ast_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& tree)
         {
-            typedef void type;
-        };
-
-        template <typename iterator_t>
-        struct get_ast
-        {
-            typedef typename create_ast<iterator_t, typename parser_ast<parser_t, iterator_t>::type>::type type;
-        };
-
-        template <typename iterator_t>
-        static bool parse_internal(iterator_t& start, iterator_t& end, typename get_ast<iterator_t>::type& tree)
-        {
-            typedef typename parser_t::template ast<iterator_t>::type ast_t;
+            typedef typename parser_ast<parser_t, iterator_t>::type ast_t;
 
             size_t i;
             for (i = 0; i < min; i++)
@@ -439,7 +353,8 @@ namespace parse
             {
                 ast_t partial;
                 if (start == end) break;
-                if (!parser_t::parse_from(start, end, partial) || partial.start == partial.end)
+                auto tmp = start;
+                if (!parser_t::parse_from(start, end, partial) || tmp == start)
                 {
                     tree.partial = partial;
                     break;
@@ -475,11 +390,7 @@ namespace parse
     template <typename parser_t>
     struct optional : public parser< optional<parser_t> >
     {
-        template <typename iterator_t>
-        struct get_ast
-        {
-            typedef typename parser_ast<parser_t, iterator_t>::type type;
-        };
+        typedef typename parser_t::ast_spec ast_spec;
 
         template <typename iterator_t>
         static bool parse_internal(iterator_t& start, iterator_t& end)
@@ -488,8 +399,8 @@ namespace parse
             return true;
         }
 
-        template <typename iterator_t>
-        static bool parse_internal(iterator_t& start, iterator_t& end, typename get_ast<iterator_t>::type& tree)
+        template <typename iterator_t, typename ast_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& tree)
         {
             if (start != end) parser_t::parse_from(start, end, tree);
             return true;
@@ -548,11 +459,7 @@ namespace parse
     template <typename parser_t>
     struct reference : public parser< reference<parser_t> >
     {
-        template <typename iterator_t>
-        struct get_ast
-        {
-            typedef typename tree::reference<parser_t, iterator_t> type;
-        };
+        typedef typename tree::make_reference<parser_t>::type ast_spec;
 
         template <typename iterator_t>
         static bool parse_internal(iterator_t& start, iterator_t& end)
@@ -560,8 +467,8 @@ namespace parse
             return parser_t::parse_from(start, end);
         }
 
-        template <typename iterator_t>
-        static bool parse_internal(iterator_t& start, iterator_t& end, typename get_ast<iterator_t>::type& tree)
+        template <typename iterator_t, typename ast_t>
+        static bool parse_internal(iterator_t& start, iterator_t& end, ast_t& tree)
         {
             typedef typename parser_ast<parser_t, iterator_t>::type p_tree;
             return parser_t::parse_from(start, end, tree.get());
