@@ -29,7 +29,7 @@ namespace parse
             {
                 tree::from_spec<iterator_t, typename elem_t::ast_spec>::type elem_ast;
                 if (!elem_t::parse_from(start, end, elem_ast)) break;
-                ast.elements.push_back(elem_ast);
+                ast.matches.push_back(elem_ast);
                 if (!delim_t::parse_from(start, end)) break;
             }
             return true;

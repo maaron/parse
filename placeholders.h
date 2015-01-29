@@ -18,4 +18,5 @@ namespace placeholders
 	static index<7> _7;
 	static index<8> _8;
 	static index<9> _9;
+    static index<9> _10;
 }
