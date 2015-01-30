@@ -10,100 +10,99 @@ namespace ttcn3
 
     never noimp;
 
-    token<'a'> a;
-    token<'b'> b;
-    token<'c'> c;
-    token<'d'> d;
-    token<'e'> e;
-    token<'f'> f;
-    token<'g'> g;
-    token<'h'> h;
-    token<'i'> i;
-    token<'j'> j;
-    token<'k'> k;
-    token<'l'> l;
-    token<'m'> m;
-    token<'n'> n;
-    token<'o'> o;
-    token<'p'> p;
-    token<'q'> q;
-    token<'r'> r;
-    token<'s'> s;
-    token<'t'> t;
-    token<'u'> u;
-    token<'v'> v;
-    token<'w'> w;
-    token<'x'> x;
-    token<'y'> y;
-    token<'z'> z;
-    token<'A'> A;
-    token<'B'> B;
-    token<'C'> C;
-    token<'D'> D;
-    token<'E'> E;
-    token<'F'> F;
-    token<'G'> G;
-    token<'H'> H;
-    token<'I'> I;
-    token<'J'> J;
-    token<'K'> K;
-    token<'L'> L;
-    token<'M'> M;
-    token<'N'> N;
-    token<'O'> O;
-    token<'P'> P;
-    token<'Q'> Q;
-    token<'R'> R;
-    token<'S'> S;
-    token<'T'> T;
-    token<'U'> U;
-    token<'V'> V;
-    token<'W'> W;
-    token<'X'> X;
-    token<'Y'> Y;
-    token<'Z'> Z;
+    typedef token<'a'> char_a;
+    typedef token<'b'> char_b;
+    typedef token<'c'> char_c;
+    typedef token<'d'> char_d;
+    typedef token<'e'> char_e;
+    typedef token<'f'> char_f;
+    typedef token<'g'> char_g;
+    typedef token<'h'> char_h;
+    typedef token<'i'> char_i;
+    typedef token<'j'> char_j;
+    typedef token<'k'> char_k;
+    typedef token<'l'> char_l;
+    typedef token<'m'> char_m;
+    typedef token<'n'> char_n;
+    typedef token<'o'> char_o;
+    typedef token<'p'> char_p;
+    typedef token<'q'> char_q;
+    typedef token<'r'> char_r;
+    typedef token<'s'> char_s;
+    typedef token<'t'> char_t;
+    typedef token<'u'> char_u;
+    typedef token<'v'> char_v;
+    typedef token<'w'> char_w;
+    typedef token<'x'> char_x;
+    typedef token<'y'> char_y;
+    typedef token<'z'> char_z;
+    typedef token<'A'> char_A;
+    typedef token<'B'> char_B;
+    typedef token<'C'> char_C;
+    typedef token<'D'> char_D;
+    typedef token<'E'> char_E;
+    typedef token<'F'> char_F;
+    typedef token<'G'> char_G;
+    typedef token<'H'> char_H;
+    typedef token<'I'> char_I;
+    typedef token<'J'> char_J;
+    typedef token<'K'> char_K;
+    typedef token<'L'> char_L;
+    typedef token<'M'> char_M;
+    typedef token<'N'> char_N;
+    typedef token<'O'> char_O;
+    typedef token<'P'> char_P;
+    typedef token<'Q'> char_Q;
+    typedef token<'R'> char_R;
+    typedef token<'S'> char_S;
+    typedef token<'T'> char_T;
+    typedef token<'U'> char_U;
+    typedef token<'V'> char_V;
+    typedef token<'W'> char_W;
+    typedef token<'X'> char_X;
+    typedef token<'Y'> char_Y;
+    typedef token<'Z'> char_Z;
 
-    token<'0'> zero;
-    token<'1'> one;
-    token<'2'> two;
-    token<'3'> three;
-    token<'4'> four;
-    token<'5'> five;
-    token<'6'> six;
-    token<'7'> seven;
-    token<'8'> eight;
-    token<'9'> nine;
+    typedef token<'0'> zero;
+    typedef token<'1'> one;
+    typedef token<'2'> two;
+    typedef token<'3'> three;
+    typedef token<'4'> four;
+    typedef token<'5'> five;
+    typedef token<'6'> six;
+    typedef token<'7'> seven;
+    typedef token<'8'> eight;
+    typedef token<'9'> nine;
 
-    token<';'> semi;
-    token<','> comma;
-    token<'_'> Underscore;
-    token<'"'> dquote;
-    token<'{'> lcurly;
-    token<'}'> rcurly;
-    token<'('> lparen;
-    token<')'> rparen;
-    token<'+'> plus;
-    token<'-'> minus;
-    token<'*'> star;
-    token<'/'> fslash;
-    token<'&'> amp;
-    token<'<'> lt;
-    token<'>'> gt;
-    token<'='> eq;
-    token<'!'> bang;
-    token<'@'> at;
-    token<']'> rbrace;
-    token<'['> lbrace;
-    token<'.'> dot;
-    token<' '> space;
+    typedef token<';'> semi;
+    typedef token<','> comma;
+    typedef token<'_'> Underscore;
+    typedef token<'"'> dquote;
+    typedef token<'{'> lcurly;
+    typedef token<'}'> rcurly;
+    typedef token<'('> lparen;
+    typedef token<')'> rparen;
+    typedef token<'+'> plus;
+    typedef token<'-'> minus;
+    typedef token<'*'> star;
+    typedef token<'/'> fslash;
+    typedef token<'&'> amp;
+    typedef token<'<'> lt;
+    typedef token<'>'> gt;
+    typedef token<'='> eq;
+    typedef token<'!'> bang;
+    typedef token<'@'> at;
+    typedef token<']'> rbrace;
+    typedef token<'['> lbrace;
+    typedef token<'.'> dot;
+    typedef token<' '> space;
+
+#define KEYWORD(name) struct keyword_##name : keyword { keyword_##name() : keyword(#name) {} };
+    KEYWORD(not4b);
+    KEYWORD(and4b);
+    KEYWORD(xor4b);
+    KEYWORD(or4b);
     
-    keyword mod("mod");
-    keyword rem("rem");
-    keyword not4b("not4b");
-    keyword xor4b("xor4b");
-    keyword or4b("or4b");
-    keyword and4b("and4b");
-
     auto NonZeroNum = one | two | three | four | five | six | seven | eight | nine;
     auto Num = zero | NonZeroNum;
     auto UpperAlpha = A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z;
@@ -126,13 +125,13 @@ namespace ttcn3
         }
     };
 
-    never Primary; //OpCall | Value | (lparen >> SingleExpression >> rparen);
+    typedef never Primary; //OpCall | Value | (lparen >> SingleExpression >> rparen);
     typedef never CompoundExpression;
     struct AddOp
     {
-        token<'+'> plus;
-        token<'-'> minus;
-        token<'&'> StringOp;
+        alt<'+'> plus;
+        alt<'-'> minus;
+        alt<'&'> StringOp;
 
         template <typename stream_t>
         bool parse(stream_t& s)
@@ -142,8 +141,8 @@ namespace ttcn3
     };
     struct MultiplyOp
     {
-        token <'*'> star;
-        token <'/'> fslash;
+        alt<'*'> star;
+        alt<'/'> fslash;
 
         template <typename stream_t>
         bool parse(stream_t& s)
@@ -151,21 +150,68 @@ namespace ttcn3
             return (star | fslash | mod | rem).parse(s);
         }
     };
-    auto UnaryOp = plus | minus;
-    auto RelOp = (lt >> eq) | (gt >> eq) | lt | gt;
-    auto EqualOp = (eq >> eq) | (bang >> eq);
-    auto ShiftOp = (lt >> lt) | (gt >> gt) | (lt >> at) | (at >> gt);
-    struct UnaryExpression
+    struct UnaryOp 
     {
+        alt<'+'> plus;
+        alt<'-'> minus;
+        
         template <typename stream_t>
         bool parse(stream_t& s)
         {
-            return (!UnaryOp >> Primary).parse(s);
+            return (plus | minus).parse(s);
+        }
+    };
+    struct RelOp
+    {
+        alt<less_equal> lte;
+        alt<greater_equal> gte;
+        alt<less> lt;
+        alt<greater> gt;
+
+        template <typename stream_t>
+        bool parse(stream_t& s)
+        {
+            return (lte | gte | lt | gt).parse(s);
+        }
+    };
+    struct EqualOp
+    {
+        alt<equal_equal> eq;
+        alt<bang_equal> ne;
+
+        template <typename stream_t>
+        bool parse(stream_t& s)
+        {
+            return (eq | ne).parse(s);
+        }
+    };
+    struct ShiftOp
+    {
+        alt<less_less> rshift;
+        alt<greater_greater> lshift;
+        alt<less_at> lshift_circ;
+        alt<at_greater> rshift_circ;
+        
+        template <typename stream_t>
+        bool parse(stream_t& s)
+        {
+            return (rshift | lshift | lshift_circ | rshift_circ).parse(s);
+        }
+    };
+    struct UnaryExpression
+    {
+        alt<UnaryOp> unaryOp;
+        Primary primary;
+
+        template <typename stream_t>
+        bool parse(stream_t& s)
+        {
+            return (!unaryOp >> primary).parse(s);
         }
     };
     struct MulExpression
     {
-        delimited_list<UnaryExpression, decltype(MultiplyOp)> terms;
+        BinaryExpression<UnaryExpression, MultiplyOp> terms;
         CompoundExpression compound;
 
         template <typename stream_t>
@@ -175,25 +221,49 @@ namespace ttcn3
         }
     };
     typedef BinaryExpression<MulExpression, AddOp> AddExpression;
-    typedef BitNotExpression = !not4b >> AddExpression;
-    typedef BitAndExpression = BitNotExpression % and4b;
-    typedef BitXorExpression = BitAndExpression % xor4b;
-    typedef BitOrExpression = BitXorExpression % or4b;
-    typedef BinaryExpression<BitOrExpression, ShiftOp> ShiftExpression;
-    auto RelExpression = (ShiftExpression >> !(RelOp >> ShiftExpression)) | CompoundExpression;
-    auto EqualExpression = RelExpression % EqualOp;
-    auto NotExpression = !not_ws >> EqualExpression;
-    auto AndExpression = NotExpression % and_ws;
-    auto XorExpression = AndExpression % xor_ws;
-    
-    struct SingleExpression
+    struct BitNotExpression
     {
+        alt<keyword_not4b> not4b;
+        AddExpression add;
+
         template <typename stream_t>
         bool parse(stream_t& s)
         {
-            return (XorExpression % or).parse(s);
+            return (!not4b >> add).parse(s);
         }
     };
+    typedef BinaryExpression<BitNotExpression, keyword_and4b> BitAndExpression;
+    typedef BinaryExpression<BitAndExpression, keyword_xor4b> BitXorExpression;
+    typedef BinaryExpression<BitXorExpression, keyword_or4b> BitOrExpression;
+    typedef BinaryExpression<BitOrExpression, ShiftOp> ShiftExpression;
+    struct RelExpression
+    {
+        alt<ShiftExpression> shiftExpr1;
+        alt<RelOp> op;
+        alt<ShiftExpression> shiftExpr2;
+        alt<CompoundExpression> compoundExpr;
+        
+        template <typename stream_t>
+        bool parse(stream_t& s)
+        {
+            return ((shiftExpr1 >> !(op >> shiftExpr2)) | compoundExpr).parse(s);
+        }
+    };
+    typedef BinaryExpression<RelExpression, EqualOp> EqualExpression;
+    struct NotExpression
+    {
+        alt<keyword_not> not;
+        EqualExpression equalExpression;
+        
+        template <typename stream_t>
+        bool parse(stream_t& s)
+        {
+            return (!not >> equalExpression).parse(s);
+        }
+    };
+    typedef BinaryExpression<NotExpression, keyword_and> AndExpression;
+    typedef BinaryExpression<AndExpression, keyword_xor> XorExpression;    
+    typedef BinaryExpression<XorExpression, keyword_or> SingleExpression;
 
 #if 0
     auto LanguageKeyword = l | a | n | g | u | a | g | e;
