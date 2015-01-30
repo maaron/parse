@@ -414,7 +414,7 @@ namespace parsing
         template <typename stream_t>
         bool parse(stream_t& s)
         {
-            return (ws >> (number | sub_expr)).parse(s);
+            return (ws >> (number | sub_expr) >> ws).parse(s);
         }
     };
 
@@ -431,6 +431,9 @@ namespace parsing
 
     void dump_expr(const parsing::s_expr& e, int level = 0)
     {
+        for (int i = 0; i < level; i++) printf(" ");
+        printf("expr\n");
+        level++;
         for (auto elem = e.elems.begin(); elem != e.elems.end(); elem++)
         {
             if (elem->number.ptr)
@@ -440,7 +443,7 @@ namespace parsing
             }
             else
             {
-                dump_expr(elem->sub_expr.get(), level + 1);
+                dump_expr(elem->sub_expr.get(), level);
             }
         }
     }
