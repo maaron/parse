@@ -1,9 +1,10 @@
 
 using System;
+using System.Collections;
 
 namespace Functional
 {
-    public class Either<L, R>
+    public class Either<L, R> : IStructuralEquatable 
     {
         Object value;
 
@@ -33,6 +34,20 @@ namespace Functional
         {
             if (value is L) left(this.Left);
             else right(this.Right);
+        }
+
+        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        {
+            var e = other as Either<L, R>;
+
+            return
+                e != null &&
+                comparer.Equals(value, e.value);
+        }
+
+        int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
+        {
+            return value.GetHashCode();
         }
     }
 }

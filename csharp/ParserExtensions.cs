@@ -54,5 +54,17 @@ namespace Parse
         {
             return Combinators.Alternate(p, next);
         }
+
+        // This is a special case of alternation where both parsers return 
+        // the same value type.  With normal Or(), you'd still wind up with 
+        // an Either<T, T>.  OrSame, on the other hand, coalesces 
+        // Either<T,T> to just T.  This is particularly useful, for example, 
+        // when building character classes, e.g., Digit.OrSame(Letter).  
+        // Unfortunately, type inference fails if we where to rename this
+        // method to just Or().
+        public static Parser<T, V> OrSame<T, V>(this Parser<T, V> p, Parser<T, V> next)
+        {
+            return Combinators.AlternateSame(p, next);
+        }
     }
 }

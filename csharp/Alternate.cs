@@ -52,5 +52,17 @@ namespace Parse
                     (failure) => right(input).MapValue(v => new Either<V1, V2>(v)));
             };
         }
+
+        public static Parser<T, V> AlternateSame<T, V>(
+            Parser<T, V> left,
+            Parser<T, V> right)
+        {
+            return (input) =>
+            {
+                return left(input).Visit(
+                    (success) => Result.Match(success.Value, success.Remaining),
+                    (failure) => right(input));
+            };
+        }
     }
 }

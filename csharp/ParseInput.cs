@@ -51,4 +51,40 @@ namespace Parse
             this.index = 0;
         }
     }
+
+    public class StringInput : IParseInput<char>
+    {
+        string data;
+        int index;
+
+        public char Current
+        {
+            get { return data[index]; }
+        }
+
+        public bool IsEnd
+        {
+            get { return index >= data.Length; }
+        }
+
+        public IParseInput<char> Next()
+        {
+            return new StringInput(data, index + 1);
+        }
+
+        public StringInput(string source, int offset)
+        {
+            this.data = source;
+            this.index = offset;
+        }
+
+        public StringInput(IEnumerable<char> source)
+        {
+            var sb = new StringBuilder();
+            foreach (char c in source) sb.Append(c);
+
+            this.data = sb.ToString();
+            this.index = 0;
+        }
+    }
 }
