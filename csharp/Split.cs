@@ -31,5 +31,12 @@ namespace Parse
                 return Result.Match(matches, input);
             };
         }
+
+        public static Parser<T, List<V1>> Split<T, V1, V2>(
+            Parser<T, V1> parser,
+            Parser<T, V2> delimiter)
+        {
+            return Split(parser, Ignore(delimiter));
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Functional;
 
 namespace Parse
@@ -65,6 +66,16 @@ namespace Parse
         public static Parser<T, V> OrSame<T, V>(this Parser<T, V> p, Parser<T, V> next)
         {
             return Combinators.AlternateSame(p, next);
+        }
+
+        public static Parser<T, List<V>> SplitBy<T, V>(this Parser<T, V> p, Parser<T> delimiter)
+        {
+            return Combinators.Split(p, delimiter);
+        }
+
+        public static Parser<T, List<V1>> SplitBy<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> delimiter)
+        {
+            return Combinators.Split(p, delimiter);
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parse;
 using Functional;
@@ -12,6 +14,13 @@ namespace UnitTest
         private static bool ValueEquals(IStructuralEquatable a, IStructuralEquatable b)
         {
             return a.Equals(b, StructuralComparisons.StructuralEqualityComparer);
+        }
+
+        private static void CheckMatches<T>(Parser<char, List<T>> p, string input, IEnumerable<T> value)
+        {
+            var result = p(new StringInput(input));
+            Assert.IsTrue(result.IsLeft);
+            Assert.IsFalse(value.Zip(result.Left.Value, (a, b) => a.Equals(b)).Contains(false));
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input, V value) where V : IStructuralEquatable
@@ -105,6 +114,18 @@ namespace UnitTest
             var two = Chars.Letter.OrSame(Chars.Digit);
 
             CheckMatch(two, "a", 'a');
+        }
+
+        [TestMethod]
+        public void TestSplit()
+        {
+            var digit = Chars.Digit;
+            var letter = Chars.Letter;
+            var split = Combinators.Split(digit, letter);
+            CheckMatches(split, "1a2b3c4d5", new[]{ '1', '2', '3', '4', '5' });
+
+            var splitBy = Combinators.Split(digit, letter);
+            CheckMatches(splitBy, "1a2b3c4d5", new[] { '1', '2', '3', '4', '5' });
         }
     }
 }
