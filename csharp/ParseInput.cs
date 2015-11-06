@@ -11,80 +11,79 @@ namespace Parse
         T Current { get; }
         bool IsEnd { get; }
         IParseInput<T> Next();
+
+        void OnFail();
+        void OnMatch();
+    }
+
+    public class ErrorHeuristic<Position> where Position : IComparable
+    {
+        public Position LongestFailure { get; set; }
+        public Position LongestMatch { get; set; }
+        public Position LastMatch { get; set; }
+
+        public ErrorHeuristic(Position init)
+        {
+            LastMatch = LongestMatch = LongestFailure = init;
+        }
+
+        public void OnFail(Position p)
+        {
+            if (LongestFailure.CompareTo(p) < 0)
+                LongestFailure = p;
+        }
+
+        public void OnMatch(Position p)
+        {
+            if (LongestMatch.CompareTo(p) < 0)
+                LongestMatch = p;
+
+            LastMatch = p;
+        }
     }
 
     public class ParseInput<T> : IParseInput<T>
     {
         T[] data;
-        int index;
+        ErrorHeuristic<int> error;
+
+        public int Position { get; private set; }
 
         public T Current
         {
-            get { return data[index]; }
+            get { return data[Position]; }
         }
 
         public bool IsEnd
         {
-            get { return index >= data.Length; }
+            get { return Position >= data.Length; }
         }
 
         public IParseInput<T> Next()
         {
-            return new ParseInput<T>(data, index + 1);
+            return new ParseInput<T>(data, error, Position + 1);
         }
 
-        public ParseInput(T[] source)
+        protected ParseInput(T[] data, ErrorHeuristic<int> error, int pos)
         {
-            this.data = source;
-            this.index = 0;
-        }
-
-        public ParseInput(T[] source, int offset)
-        {
-            this.data = source;
-            this.index = offset;
+            this.data = data;
+            this.error = error;
+            this.Position = pos;
         }
 
         public ParseInput(IEnumerable<T> source)
         {
             this.data = source.ToArray();
-            this.index = 0;
-        }
-    }
-
-    public class StringInput : IParseInput<char>
-    {
-        string data;
-        int index;
-
-        public char Current
-        {
-            get { return data[index]; }
+            this.error = new ErrorHeuristic<int>(0);
+            this.Position = 0;
         }
 
-        public bool IsEnd
-        {
-            get { return index >= data.Length; }
-        }
+        public void OnMatch() { error.OnMatch(Position); }
+        public void OnFail() { error.OnFail(Position); }
 
-        public IParseInput<char> Next()
+        public ErrorHeuristic<int> Error
         {
-            return new StringInput(data, index + 1);
-        }
-
-        public StringInput(string source, int offset)
-        {
-            this.data = source;
-            this.index = offset;
-        }
-
-        public StringInput(IEnumerable<char> source)
-        {
-            var sb = new StringBuilder();
-            foreach (char c in source) sb.Append(c);
-
-            this.data = sb.ToString();
-            this.index = 0;
+            get { return error; }
         }
     }
 }

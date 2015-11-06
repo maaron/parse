@@ -21,54 +21,54 @@ namespace UnitTest
 
         private static void CheckMatches<T>(Parser<char, List<T>> p, string input, IEnumerable<T> value)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
             Assert.IsFalse(value.Zip(result.Left.Value, (a, b) => a.Equals(b)).Contains(false));
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input, V value) where V : IStructuralEquatable
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
             Assert.IsTrue(ValueEquals(result.Left.Value, value));
         }
 
         private static void CheckMatch(Parser<char, string> p, string input, string value)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
             Assert.IsTrue(result.Left.Value == value);
         }
 
         private static void CheckMatch(Parser<char, char> p, string input, char value)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
             Assert.IsTrue(result.Left.Value == value);
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input, Func<V, bool> predicate)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
             Assert.IsTrue(predicate(result.Left.Value));
         }
 
         private static void CheckMatch(Parser<char> p, string input)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
         }
 
         private static void CheckFail<V>(Parser<char, V> p, string input)
         {
-            var result = p(new StringInput(input));
+            var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsRight);
         }
 
@@ -195,6 +195,19 @@ namespace UnitTest
             CheckMatch(str, "\"\\\\\"", "\\");
             CheckMatch(str, "\"\\\"hello\\\"\"", "\"hello\"");
             CheckMatch(str, "\"hello\\t\\r\\nthere\"", "hello\t\r\nthere");
+        }
+
+        [TestMethod]
+        public void ErrorHandling()
+        {
+            var parser = '1'.And("23".And('4').Or("24")).Or("12").And('4');
+
+            var input = new ParseInput<char>("123");
+            var result = parser(input);
+            Assert.IsTrue(result.IsRight);
+            Assert.IsTrue(input.Error.LongestFailure == 3);
+            Assert.IsTrue(input.Error.LongestMatch == 3);
+            Assert.IsTrue(input.Error.LastMatch == 2);
         }
     }
 }

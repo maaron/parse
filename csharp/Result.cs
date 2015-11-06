@@ -39,21 +39,25 @@ namespace Parse
     {
         public static Either<Success<T, V>, Failure<T>> Match<T, V>(V value, IParseInput<T> remainder)
         {
+            remainder.OnMatch();
             return new Either<Success<T, V>, Failure<T>>(new Success<T, V>(value, remainder));
         }
 
         public static Either<Success<T>, Failure<T>> Match<T>(IParseInput<T> remainder)
         {
+            remainder.OnMatch();
             return new Either<Success<T>, Failure<T>>(new Success<T>(remainder));
         }
 
         public static Either<Success<T, V>, Failure<T>> Fail<T, V>(IParseInput<T> remainder)
         {
+            remainder.OnFail();
             return new Either<Success<T, V>, Failure<T>>(new Failure<T>(remainder));
         }
 
         public static Either<Success<T>, Failure<T>> Fail<T>(IParseInput<T> remainder)
         {
+            remainder.OnFail();
             return new Either<Success<T>, Failure<T>>(new Failure<T>(remainder));
         }
 
