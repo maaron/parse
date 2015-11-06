@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Parse;
+using Parse.Extensions;
+using Parse.Character;
 using Functional;
 
 namespace UnitTest
@@ -28,6 +31,13 @@ namespace UnitTest
             var result = p(new StringInput(input));
             Assert.IsTrue(result.IsLeft);
             Assert.IsTrue(ValueEquals(result.Left.Value, value));
+        }
+
+        private static void CheckMatch(Parser<char, string> p, string input, string value)
+        {
+            var result = p(new StringInput(input));
+            Assert.IsTrue(result.IsLeft);
+            Assert.IsTrue(result.Left.Value == value);
         }
 
         private static void CheckMatch(Parser<char, char> p, string input, char value)
@@ -145,9 +155,9 @@ namespace UnitTest
         public void TestCsv()
         {
             var comma = Chars.Const(',');
-            var crlf = Chars.Const('\r').And(Chars.Const('\n')).Or(Chars.Const('\r')).Or(Chars.Const('\n'));
-            var c = Combinators.Not(comma.Or(crlf)).And(Chars.Any);
-            var field = Combinators.ZeroOrMore(c).Return(l => new String(l.ToArray()));
+            var crlf = "\r\n".Or('\r').Or('\n');
+            var c = Chars.Any.Except(comma.Or(crlf));
+            var field = c.Repeated().Return(l => new String(l.ToArray()));
             var line = field.SplitBy(comma);
             var lines = line.SplitBy(crlf);
 
@@ -163,6 +173,28 @@ namespace UnitTest
                     && csv[1].SequenceEqual(new[] {"1   "," 23454"," d c f sd "," waefwef","",""})
                     && csv[2].SequenceEqual(new[] {"","","",""})
                     && csv[3].SequenceEqual(new[] {"asdf"}));
+        }
+
+        [TestMethod]
+        public void StringEscape()
+        {
+            Func<char,char> map = (c) =>
+                  c == 'n' ? '\n'
+                : c == 'r' ? '\r'
+                : c == 't' ? '\t'
+                : c;
+
+            var escaped = '\\'.And(Chars.Any).Return(map);
+            var nonescaped = Chars.Any.Except(escaped);
+            var term = nonescaped.If(c => c == '"');
+            var mapped = escaped.OrSame(Chars.Any);
+            var str = '"'.And(mapped.Except(term).Repeated()).And('"')
+                .Return(l => new String(l.ToArray()));
+
+            CheckMatch(str, "\"asdf\"", "asdf");
+            CheckMatch(str, "\"\\\\\"", "\\");
+            CheckMatch(str, "\"\\\"hello\\\"\"", "\"hello\"");
+            CheckMatch(str, "\"hello\\t\\r\\nthere\"", "hello\t\r\nthere");
         }
     }
 }

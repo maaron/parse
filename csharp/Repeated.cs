@@ -26,5 +26,24 @@ namespace Parse
                 return Result.Match(matches, input);
             };
         }
+
+        public static Parser<T> ZeroOrMore<T>(
+            Parser<T> parser)
+        {
+            return (input) =>
+            {
+                bool failed = false;
+                while (!failed)
+                {
+                    parser(input).Visit(
+                        (success) =>
+                        {
+                            input = success.Remaining;
+                        },
+                        (failure) => { failed = true; });
+                }
+                return Result.Match(input);
+            };
+        }
     }
 }
