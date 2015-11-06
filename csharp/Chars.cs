@@ -18,7 +18,12 @@ namespace Parse
 
         public static Parser<char> Const(char c)
         {
-            return Ignore(If(Any, a => a == c));
+            return (input) =>
+            {
+                return input.IsEnd || input.Current != c ?
+                    Result.Fail(input) :
+                    Result.Match(input.Next());
+            };
         }
 
         public static Parser<char, char> Space = If(Any, System.Char.IsWhiteSpace);

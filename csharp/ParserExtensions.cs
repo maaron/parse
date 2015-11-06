@@ -77,5 +77,13 @@ namespace Parse
         {
             return Combinators.Split(p, delimiter);
         }
+
+        public static Parser<T, V2> Return<T, V1, V2>(this Parser<T, V1> p, Func<V1, V2> f)
+        {
+            return (input) =>
+            {
+                return p(input).MapValue(f);
+            };
+        }
     }
 }

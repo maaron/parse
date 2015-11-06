@@ -43,6 +43,19 @@ namespace UnitTest
             Assert.IsTrue(result.IsLeft);
         }
 
+        private static void CheckMatch<V>(Parser<char, V> p, string input, Func<V, bool> predicate)
+        {
+            var result = p(new StringInput(input));
+            Assert.IsTrue(result.IsLeft);
+            Assert.IsTrue(predicate(result.Left.Value));
+        }
+
+        private static void CheckMatch(Parser<char> p, string input)
+        {
+            var result = p(new StringInput(input));
+            Assert.IsTrue(result.IsLeft);
+        }
+
         private static void CheckFail<V>(Parser<char, V> p, string input)
         {
             var result = p(new StringInput(input));
@@ -126,6 +139,30 @@ namespace UnitTest
 
             var splitBy = Combinators.Split(digit, letter);
             CheckMatches(splitBy, "1a2b3c4d5", new[] { '1', '2', '3', '4', '5' });
+        }
+
+        [TestMethod]
+        public void TestCsv()
+        {
+            var comma = Chars.Const(',');
+            var crlf = Chars.Const('\r').And(Chars.Const('\n')).Or(Chars.Const('\r')).Or(Chars.Const('\n'));
+            var c = Combinators.Not(comma.Or(crlf)).And(Chars.Any);
+            var field = Combinators.ZeroOrMore(c).Return(l => new String(l.ToArray()));
+            var line = field.SplitBy(comma);
+            var lines = line.SplitBy(crlf);
+
+            CheckMatch(lines, "a,b,c");
+            CheckMatch(lines, "asdf,qwer,zxcv");
+            CheckMatch(lines,
+                "asdf,qwer,zxcv\n" +
+                "1   , 23454, d c f sd , waefwef,,\r" +
+                ",,,\r\n" +
+                "asdf",
+                csv => csv.Count == 4
+                    && csv[0].SequenceEqual(new[] {"asdf","qwer","zxcv"})
+                    && csv[1].SequenceEqual(new[] {"1   "," 23454"," d c f sd "," waefwef","",""})
+                    && csv[2].SequenceEqual(new[] {"","","",""})
+                    && csv[3].SequenceEqual(new[] {"asdf"}));
         }
     }
 }

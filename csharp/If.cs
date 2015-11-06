@@ -14,7 +14,7 @@ namespace Parse
                     (success) => predicate(success.Value) ?
                         Result.Match(success.Value, success.Remaining) :
                         Result.Fail<T, V>(input),
-                    (failure) => Result.Fail<T, V>(failure.Remaining));
+                    (failure) => Result.Fail<T, V>(input));
             };
         }
     }

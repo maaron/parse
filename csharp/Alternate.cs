@@ -12,8 +12,8 @@ namespace Parse
             return (input) =>
             {
                 return left(input).Visit(
-                    (success) => right(success.Remaining),
-                    (failure) => Result.Fail<T>(failure.Remaining));
+                    (success) => Result.Match(success.Remaining),
+                    (failure) => right(input));
             };
         }
 

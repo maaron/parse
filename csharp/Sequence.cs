@@ -37,7 +37,7 @@ namespace Parse
             {
                 return left(input).Visit(
                     (success) => right(success.Remaining).MapValue(),
-                    (failure) => Result.Fail<T, V>(failure.Remaining));
+                    (failure) => Result.Fail<T, V>(input));
             };
         }
 
@@ -49,7 +49,7 @@ namespace Parse
             {
                 return left(input).Visit(
                     (success) => right(success.Remaining).MapValue(() => success.Value),
-                    (failure) => Result.Fail<T, V>(failure.Remaining));
+                    (failure) => Result.Fail<T, V>(input));
             };
         }
 
@@ -61,7 +61,7 @@ namespace Parse
             {
                 return left(input).Visit(
                     (success) => right(success.Remaining),
-                    (failure) => Result.Fail<T>(failure.Remaining));
+                    (failure) => Result.Fail<T>(input));
             };
         }
 
@@ -77,7 +77,7 @@ namespace Parse
             {
                 return left(input).Visit(
                     (success) => right(success.Remaining).MapValue(r => f(success.Value, r)),
-                    (failure) => Result.Fail<T, V3>(failure.Remaining));
+                    (failure) => Result.Fail<T, V3>(input));
             };
         }
     }
