@@ -108,6 +108,11 @@ namespace Parse
                 return Combinators.ZeroOrMore(p);
             }
 
+            public static Parser<T, List<V>> Repeated<T, V>(this Parser<T, V> p, int min)
+            {
+                return Combinators.AtLeastMany(p, min);
+            }
+
             public static Parser<T> Except<T>(this Parser<T> p, Parser<T> not)
             {
                 return Combinators.Not(not).And(p);

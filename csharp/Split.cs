@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Functional;
+using Parse.Extensions;
 
 namespace Parse
 {
@@ -10,25 +11,34 @@ namespace Parse
             Parser<T, V> parser,
             Parser<T> delimiter)
         {
+            var both = parser.And(Combinators.Optional(delimiter));
+
             return (input) =>
             {
                 var matches = new List<V>();
                 bool failed = false;
-                while (!failed)
+                bool stop = false;
+                while (!stop && !failed)
                 {
-                    parser(input).Visit(
+                    both(input).Visit(
                         (success) =>
                         {
-                            input = success.Remaining;
-                            matches.Add(success.Value);
+                            if (input.Equals(success.Remaining))
+                            {
+                                stop = true;
+                                matches.Add(success.Value.Item1);
+                            }
+                            else
+                            {
+                                stop = !success.Value.Item2;
+                                input = success.Remaining;
+                                matches.Add(success.Value.Item1);
+                            }
                         },
-                        (failure) => { failed = true; });
-
-                    delimiter(input).Visit(
-                        (success) => { input = success.Remaining; },
-                        (failure) => { failed = true; });
+                        (failure) => failed = true);
                 }
-                return Result.Match(matches, input);
+                return failed ? Result.Fail<T, List<V>>(input)
+                    : Result.Match(matches, input);
             };
         }
 

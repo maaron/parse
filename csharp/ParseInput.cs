@@ -85,5 +85,20 @@ namespace Parse
         {
             get { return error; }
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || !(obj is ParseInput<T>)) return false;
+
+            var other = (ParseInput<T>)obj;
+
+            return Object.ReferenceEquals(data, other.data)
+                && Position == other.Position;
+        }
+
+        public override int GetHashCode()
+        {
+            return data.GetHashCode() + Position;
+        }
     }
 }

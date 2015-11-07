@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace Functional
 {
-    public class Either<L, R> : IStructuralEquatable 
+    public class Either<L, R>
     {
         Object value;
 
@@ -13,6 +13,16 @@ namespace Functional
 
         public bool IsLeft { get { return value is L; } }
         public bool IsRight { get { return value is R; } }
+
+        public static implicit operator Either<L, R>(L left)
+        {
+            return new Either<L, R>(left);
+        }
+
+        public static implicit operator Either<L, R>(R right)
+        {
+            return new Either<L, R>(right);
+        }
 
         public Either(L left)
         {
@@ -36,16 +46,16 @@ namespace Functional
             else right(this.Right);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        public override bool Equals(object other)
         {
             var e = other as Either<L, R>;
 
             return
                 e != null &&
-                comparer.Equals(value, e.value);
+                value.Equals(e.value);
         }
 
-        int IStructuralEquatable.GetHashCode(IEqualityComparer comparer)
+        public override int GetHashCode()
         {
             return value.GetHashCode();
         }
