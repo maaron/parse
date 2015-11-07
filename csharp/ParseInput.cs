@@ -16,7 +16,7 @@ namespace Parse
         void OnMatch();
     }
 
-    public class ErrorHeuristic<Position> where Position : IComparable
+    public class ErrorHeuristic<Position> where Position : IComparable<Position>
     {
         public Position LongestFailure { get; set; }
         public Position LongestMatch { get; set; }
@@ -99,6 +99,219 @@ namespace Parse
         public override int GetHashCode()
         {
             return data.GetHashCode() + Position;
+        }
+    }
+
+    public struct LineColumn : IComparable<LineColumn>
+    {
+        public int Line;
+        public int Column;
+
+        public LineColumn(int line, int column)
+        {
+            Line = line;
+            Column = column;
+        }
+
+        public int CompareTo(LineColumn other)
+        {
+            var l = Line.CompareTo(other.Line);
+            return l != 0 ? l : Column.CompareTo(other.Column);
+        }
+
+        public static bool operator==(LineColumn a, LineColumn b)
+        {
+            return a.Line == b.Line && a.Column == b.Column;
+        }
+
+        public static bool operator !=(LineColumn a, LineColumn b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj != null &&
+                obj is LineColumn &&
+                this == (LineColumn)obj;
+        }
+
+        public override int GetHashCode()
+        {
+            return Line + Column;
+        }
+    }
+
+    public abstract class AdaptedParseInput<T> : IParseInput<T>
+    {
+        protected IParseInput<T> adapted;
+
+        public AdaptedParseInput(IParseInput<T> input)
+        {
+            this.adapted = input;
+        }
+
+        public T Current
+        {
+            get
+            {
+                return adapted.Current;
+            }
+        }
+
+        public bool IsEnd
+        {
+            get
+            {
+                return adapted.IsEnd;
+            }
+        }
+
+        public virtual void OnFail()
+        {
+            adapted.OnFail();
+        }
+
+        public virtual void OnMatch()
+        {
+            adapted.OnMatch();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return adapted.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return adapted.GetHashCode();
+        }
+
+        public abstract IParseInput<T> Next();
+    }
+
+    public class LineTrackingInput : AdaptedParseInput<char>
+    {
+        public LineColumn Position { get; private set; }
+        public ErrorHeuristic<LineColumn> Error
+        {
+            get; private set;
+        }
+
+        public LineTrackingInput(IParseInput<char> input) 
+            : base(input)
+        {
+            Position = new LineColumn(0, 0);
+            Error = new ErrorHeuristic<LineColumn>(Position);
+        }
+
+        private LineTrackingInput(IParseInput<char> input, int line, int column, ErrorHeuristic<LineColumn> error)
+            : base(input)
+        {
+            this.adapted = input;
+            this.Position = new LineColumn(line, column);
+            this.Error = error;
+        }
+
+        public override IParseInput<char> Next()
+        {
+            var next = adapted.Next();
+            if ((Current == '\r' && (next.IsEnd || next.Current != '\n'))
+                || Current == '\n')
+            {
+                return new LineTrackingInput(
+                    next, Position.Line + 1, 0, Error);
+            }
+            else
+            {
+                return new LineTrackingInput(
+                    next, Position.Line, Position.Column + 1, Error);
+            }
+        }
+
+        public override void OnFail()
+        {
+            Error.OnFail(Position);
+        }
+
+        public override void OnMatch()
+        {
+            Error.OnMatch(Position);
+        }
+    }
+
+    public class LineBasedInput : IParseInput<char>
+    {
+        List<string> lines;
+        ErrorHeuristic<LineColumn> error;
+
+        public LineColumn Position { get; private set; }
+
+        public char Current
+        {
+            get { return lines[Position.Line][Position.Column]; }
+        }
+
+        public bool IsEnd
+        {
+            get { return Position.Line >= lines.Count; }
+        }
+
+        public IParseInput<char> Next()
+        {
+            return new LineBasedInput(lines, error,
+                Position.Column >= lines[Position.Line].Length ?
+                    new LineColumn(Position.Line + 1, 0) :
+                    new LineColumn(Position.Line, Position.Column + 1));
+        }
+
+        protected LineBasedInput(List<string> lines, ErrorHeuristic<LineColumn> error, LineColumn pos)
+        {
+            this.lines = lines;
+            this.error = error;
+            this.Position = pos;
+        }
+
+        public LineBasedInput(IEnumerable<char> source)
+        {
+            var sb = new StringBuilder();
+            bool cr = false;
+            foreach (char c in source)
+            {
+                sb.Append(c);
+                if (c == '\r') cr = true;
+                else if (c == '\n' || cr)
+                {
+                    lines.Add(sb.ToString());
+                    sb = new StringBuilder();
+                    cr = false;
+                }
+            }
+            this.error = new ErrorHeuristic<LineColumn>(new LineColumn());
+            this.Position = new LineColumn(0, 0);
+        }
+
+        public void OnMatch() { error.OnMatch(Position); }
+        public void OnFail() { error.OnFail(Position); }
+
+        public ErrorHeuristic<LineColumn> Error
+        {
+            get { return error; }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || !(obj is LineBasedInput)) return false;
+
+            var other = (LineBasedInput)obj;
+
+            return Object.ReferenceEquals(lines, other.lines)
+                && Position == other.Position;
+        }
+
+        public override int GetHashCode()
+        {
+            return lines.GetHashCode() ^ Position.GetHashCode();
         }
     }
 }

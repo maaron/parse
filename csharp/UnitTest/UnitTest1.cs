@@ -210,6 +210,51 @@ namespace UnitTest
             Assert.IsTrue(input.Error.LastMatch == 2);
         }
 
+        [TestMethod]
+        public void LineTrackingInput()
+        {
+
+            IParseInput<char> input = new LineTrackingInput(new ParseInput<char>(
+                "abc\r\n" +
+                "def\n" +
+                "ghi\r" +
+                "jkl\r" +
+                "\r\n" + 
+                "\n" +
+                "\r"));
+
+            Action<int, int> CheckPos = (l, c) =>
+            {
+                Assert.IsTrue(
+                ((LineTrackingInput)input).Position == new LineColumn(l, c));
+
+                if (!input.IsEnd) input = input.Next();
+            };
+
+            CheckPos(0, 0);
+            CheckPos(0, 1);
+            CheckPos(0, 2);
+            CheckPos(0, 3);
+            CheckPos(0, 4);
+            CheckPos(1, 0);
+            CheckPos(1, 1);
+            CheckPos(1, 2);
+            CheckPos(1, 3);
+            CheckPos(2, 0);
+            CheckPos(2, 1);
+            CheckPos(2, 2);
+            CheckPos(2, 3);
+            CheckPos(3, 0);
+            CheckPos(3, 1);
+            CheckPos(3, 2);
+            CheckPos(3, 3);
+            CheckPos(4, 0);
+            CheckPos(4, 1);
+            CheckPos(5, 0);
+            CheckPos(6, 0);
+            CheckPos(7, 0);
+        }
+
         class Expr
         {
             public List<Either<Expr, string>> items;
