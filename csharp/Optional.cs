@@ -14,5 +14,15 @@ namespace Parse
                     (failure) => Result.Match(new Maybe<V>(), input));
             };
         }
+
+        public static Parser<T, bool> Optional<T>(Parser<T> parser)
+        {
+            return (input) =>
+            {
+                return parser(input).Visit(
+                    (success) => Result.Match(true, success.Remaining),
+                    (failure) => Result.Match(false, input));
+            };
+        }
     }
 }

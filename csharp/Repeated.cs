@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Functional;
+using Parse.Extensions;
 
 namespace Parse
 {
@@ -18,8 +19,12 @@ namespace Parse
                     parser(input).Visit(
                         (success) =>
                         {
-                            input = success.Remaining;
-                            matches.Add(success.Value);
+                            if (input.Equals(success.Remaining)) failed = true;
+                            else
+                            {
+                                input = success.Remaining;
+                                matches.Add(success.Value);
+                            }
                         },
                         (failure) => { failed = true; });
                 }
@@ -38,12 +43,18 @@ namespace Parse
                     parser(input).Visit(
                         (success) =>
                         {
-                            input = success.Remaining;
+                            if (input.Equals(success.Remaining)) failed = true;
+                            else input = success.Remaining;
                         },
                         (failure) => { failed = true; });
                 }
                 return Result.Match(input);
             };
+        }
+
+        public static Parser<T, List<V>> AtLeastMany<T, V>(Parser<T, V> parser, int min)
+        {
+            return ZeroOrMore(parser).If(l => l.Count >= min);
         }
     }
 }

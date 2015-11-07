@@ -14,9 +14,9 @@ namespace UnitTest
     [TestClass]
     public class UnitTest
     {
-        private static bool ValueEquals(IStructuralEquatable a, IStructuralEquatable b)
+        private static bool ValueEquals<A, B>(A a, B b)
         {
-            return a.Equals(b, StructuralComparisons.StructuralEqualityComparer);
+            return a.Equals(b);
         }
 
         private static void CheckMatches<T>(Parser<char, List<T>> p, string input, IEnumerable<T> value)
@@ -26,7 +26,7 @@ namespace UnitTest
             Assert.IsFalse(value.Zip(result.Left.Value, (a, b) => a.Equals(b)).Contains(false));
         }
 
-        private static void CheckMatch<V>(Parser<char, V> p, string input, V value) where V : IStructuralEquatable
+        private static void CheckMatch<V>(Parser<char, V> p, string input, V value)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsLeft);
@@ -147,7 +147,7 @@ namespace UnitTest
             var split = Combinators.Split(digit, letter);
             CheckMatches(split, "1a2b3c4d5", new[]{ '1', '2', '3', '4', '5' });
 
-            var splitBy = Combinators.Split(digit, letter);
+            var splitBy = digit.SplitBy(letter);
             CheckMatches(splitBy, "1a2b3c4d5", new[] { '1', '2', '3', '4', '5' });
         }
 
@@ -208,6 +208,87 @@ namespace UnitTest
             Assert.IsTrue(input.Error.LongestFailure == 3);
             Assert.IsTrue(input.Error.LongestMatch == 3);
             Assert.IsTrue(input.Error.LastMatch == 2);
+        }
+
+        class Expr
+        {
+            public List<Either<Expr, string>> items;
+
+            public Expr()
+            {
+                items = new List<Either<Expr, string>>();
+            }
+
+            public Expr(params Object[] list)
+            {
+                items = new List<Either<Expr, string>>();
+                foreach (var i in list)
+                {
+                    if (i is string) items.Add((string)i);
+                    else if (i is Expr) items.Add((Expr)i);
+                }
+            }
+
+            public override bool Equals(object obj)
+            {
+                var e = obj as Expr;
+                return obj != null
+                    && obj is Expr
+                    && items.SequenceEqual(e.items);
+            }
+
+            public override int GetHashCode()
+            {
+                return items.Aggregate(0, (x, y) => x ^ y.GetHashCode());
+            }
+        };
+
+        public class Ref<T>
+        {
+            public T Value { get; private set; }
+
+            public Ref(T value)
+            {
+                Value = value;
+            }
+        }
+
+        [TestMethod]
+        public void Recursive()
+        {
+            // Lisp-style lists
+            var token = Chars.Letter.Repeated(1).Return(
+                l => new String(l.ToArray()));
+
+            var ws = Combinators.Ignore(Chars.Space).Repeated();
+
+            // This is a little "delayed-binding" trick in order to get a 
+            // recursive parser.  An alternative is to use a normal function
+            // instead, which can be self-referencing.  The key part is the 
+            // exprRef lambda that captures the local expr variable, which 
+            // doesn't actually get used until after it is initialized below.
+            Parser<char, Expr> expr = null;
+            Parser<char, Expr> exprRef = (i) => expr(i);
+            expr = ws
+                .And('(')
+                .And(ws.And(exprRef.Or(token)).Repeated())
+                .And(ws)
+                .And(')').Return(
+                    e => new Expr() { items = e });
+
+            CheckMatch(expr, "()", new Expr());
+
+            CheckMatch(expr, "(())", new Expr(new Expr()));
+
+            CheckMatch(expr, "(asdf qwer)", new Expr("asdf", "qwer"));
+
+            CheckMatch(expr, "(a (b b (c c c (d d d d))))", new Expr(
+                "a", new Expr(
+                    "b", "b", new Expr(
+                        "c", "c", "c", new Expr(
+                            "d", "d", "d", "d")))));
+
+            CheckFail(expr, "(");
         }
     }
 }
