@@ -4,51 +4,51 @@ using System.Collections;
 
 namespace Functional
 {
-    public class Variant<L, R>
+    public class Variant<T0, T1>
     {
         Object value;
 
-        public L Left { get { return (L)value; } }
-        public R Right { get { return (R)value; } }
+        public T0 Item0 { get { return (T0)value; } }
+        public T1 Item1 { get { return (T1)value; } }
 
-        public bool IsLeft { get { return value is L; } }
-        public bool IsRight { get { return value is R; } }
+        public bool IsItem0 { get { return value is T0; } }
+        public bool IsItem1 { get { return value is T1; } }
 
-        public static implicit operator Variant<L, R>(L left)
+        public static implicit operator Variant<T0, T1>(T0 left)
         {
-            return new Variant<L, R>(left);
+            return new Variant<T0, T1>(left);
         }
 
-        public static implicit operator Variant<L, R>(R right)
+        public static implicit operator Variant<T0, T1>(T1 right)
         {
-            return new Variant<L, R>(right);
+            return new Variant<T0, T1>(right);
         }
 
-        public Variant(L left)
+        public Variant(T0 left)
         {
             this.value = left;
         }
 
-        public Variant(R right)
+        public Variant(T1 right)
         {
             this.value = right;
         }
 
-        public T Visit<T>(Func<L, T> left, Func<R, T> right)
+        public T Visit<T>(Func<T0, T> left, Func<T1, T> right)
         {
-            if (value is L) return left(this.Left);
-            else return right(this.Right);
+            if (value is T0) return left(this.Item0);
+            else return right(this.Item1);
         }
 
-        public void Visit(Action<L> left, Action<R> right)
+        public void Visit(Action<T0> left, Action<T1> right)
         {
-            if (value is L) left(this.Left);
-            else right(this.Right);
+            if (value is T0) left(this.Item0);
+            else right(this.Item1);
         }
 
         public override bool Equals(object other)
         {
-            var e = other as Variant<L, R>;
+            var e = other as Variant<T0, T1>;
 
             return
                 e != null &&

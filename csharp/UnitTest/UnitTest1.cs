@@ -98,8 +98,8 @@ namespace UnitTest
                 new Variant<char, int>('a'),
                 new Variant<char, int>(1)));
 
-            Assert.IsTrue(SameEither<int, int>(1).IsLeft);
-            Assert.IsTrue(SameEither<int, int>(1).IsRight);
+            Assert.IsTrue(SameEither<int, int>(1).IsItem0);
+            Assert.IsTrue(SameEither<int, int>(1).IsItem1);
         }
 
         [TestMethod]
