@@ -11,35 +11,10 @@ namespace Parse
             Parser<T, V> parser,
             Parser<T> delimiter)
         {
-            var both = parser.And(Combinators.Optional(delimiter));
-
-            return (input) =>
+            return parser.And(delimiter.And(parser).Repeated()).Return(t =>
             {
-                var matches = new List<V>();
-                bool failed = false;
-                bool stop = false;
-                while (!stop && !failed)
-                {
-                    both(input).Visit(
-                        (success) =>
-                        {
-                            if (input.Equals(success.Remaining))
-                            {
-                                stop = true;
-                                matches.Add(success.Value.Item1);
-                            }
-                            else
-                            {
-                                stop = !success.Value.Item2;
-                                input = success.Remaining;
-                                matches.Add(success.Value.Item1);
-                            }
-                        },
-                        (failure) => failed = true);
-                }
-                return failed ? Result.Fail<T, List<V>>(input)
-                    : Result.Match(matches, input);
-            };
+                t.Item2.Insert(0, t.Item1); return t.Item2;
+            });
         }
 
         public static Parser<T, List<V1>> Split<T, V1, V2>(
