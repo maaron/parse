@@ -5,7 +5,7 @@ namespace Parse
 {
     public class Result<T>
     {
-        private Either<Success<T>, Failure<T>> result;
+        private Variant<Success<T>, Failure<T>> result;
 
         public Result(Success<T> success)
         {
@@ -36,7 +36,7 @@ namespace Parse
 
     public class Result<T, V>
     {
-        private Either<Success<T, V>, Failure<T>> result;
+        private Variant<Success<T, V>, Failure<T>> result;
 
         public Result(Success<T, V> success)
         {

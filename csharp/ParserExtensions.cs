@@ -53,7 +53,7 @@ namespace Parse
                 return Combinators.Alternate(p, next);
             }
 
-            public static Parser<T, Either<V1, V2>> Or<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> next)
+            public static Parser<T, Variant<V1, V2>> Or<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> next)
             {
                 return Combinators.Alternate(p, next);
             }

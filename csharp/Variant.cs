@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace Functional
 {
-    public class Either<L, R>
+    public class Variant<L, R>
     {
         Object value;
 
@@ -14,22 +14,22 @@ namespace Functional
         public bool IsLeft { get { return value is L; } }
         public bool IsRight { get { return value is R; } }
 
-        public static implicit operator Either<L, R>(L left)
+        public static implicit operator Variant<L, R>(L left)
         {
-            return new Either<L, R>(left);
+            return new Variant<L, R>(left);
         }
 
-        public static implicit operator Either<L, R>(R right)
+        public static implicit operator Variant<L, R>(R right)
         {
-            return new Either<L, R>(right);
+            return new Variant<L, R>(right);
         }
 
-        public Either(L left)
+        public Variant(L left)
         {
             this.value = left;
         }
 
-        public Either(R right)
+        public Variant(R right)
         {
             this.value = right;
         }
@@ -48,7 +48,7 @@ namespace Functional
 
         public override bool Equals(object other)
         {
-            var e = other as Either<L, R>;
+            var e = other as Variant<L, R>;
 
             return
                 e != null &&

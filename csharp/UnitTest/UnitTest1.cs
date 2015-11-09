@@ -78,25 +78,25 @@ namespace UnitTest
         // Either constructor at compile time.  However, trying 
         // "new Either<T,T>(t)" doesn't compile because the call is ambiguous 
         // between Either's two constructors.
-        private static Either<A, B> SameEither<A, B>(A a)
+        private static Variant<A, B> SameEither<A, B>(A a)
         {
-            return new Either<A, B>(a);
+            return new Variant<A, B>(a);
         }
 
         [TestMethod]
         public void TestEitherStructuralEquality()
         {
             Assert.IsTrue(ValueEquals(
-                new Either<char, int>('a'),
-                new Either<char, int>('a')));
+                new Variant<char, int>('a'),
+                new Variant<char, int>('a')));
 
             Assert.IsTrue(ValueEquals(
-                new Either<char, Either<int, bool>>(new Either<int,bool>(false)),
-                new Either<char, Either<int, bool>>(new Either<int, bool>(false))));
+                new Variant<char, Variant<int, bool>>(new Variant<int,bool>(false)),
+                new Variant<char, Variant<int, bool>>(new Variant<int, bool>(false))));
 
             Assert.IsFalse(ValueEquals(
-                new Either<char, int>('a'),
-                new Either<char, int>(1)));
+                new Variant<char, int>('a'),
+                new Variant<char, int>(1)));
 
             Assert.IsTrue(SameEither<int, int>(1).IsLeft);
             Assert.IsTrue(SameEither<int, int>(1).IsRight);
@@ -125,8 +125,8 @@ namespace UnitTest
             var letter = Chars.Letter;
             var two = twoDigits.Or(letter);
 
-            CheckMatch(two, "a", new Either<Tuple<char, char>, char>('a'));
-            CheckMatch(two, "12", new Either<Tuple<char, char>, char>(Tuple.Create('1', '2')));
+            CheckMatch(two, "a", new Variant<Tuple<char, char>, char>('a'));
+            CheckMatch(two, "12", new Variant<Tuple<char, char>, char>(Tuple.Create('1', '2')));
             CheckFail(two, "");
             CheckFail(two, "1a");
         }
@@ -257,16 +257,16 @@ namespace UnitTest
 
         class Expr
         {
-            public List<Either<Expr, string>> items;
+            public List<Variant<Expr, string>> items;
 
             public Expr()
             {
-                items = new List<Either<Expr, string>>();
+                items = new List<Variant<Expr, string>>();
             }
 
             public Expr(params Object[] list)
             {
-                items = new List<Either<Expr, string>>();
+                items = new List<Variant<Expr, string>>();
                 foreach (var i in list)
                 {
                     if (i is string) items.Add((string)i);
