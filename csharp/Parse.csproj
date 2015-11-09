@@ -47,6 +47,7 @@
     <Compile Include="Ignore.cs" />
     <Compile Include="Maybe.cs" />
     <Compile Include="Not.cs" />
+    <Compile Include="ParseAction.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Parse.cs" />
     <Compile Include="ParseInput.cs" />

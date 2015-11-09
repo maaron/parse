@@ -264,14 +264,9 @@ namespace UnitTest
                 items = new List<Either<Expr, string>>();
             }
 
-            public Expr(params Object[] list)
+            public Expr(params Either<Expr, string>[] list)
             {
-                items = new List<Either<Expr, string>>();
-                foreach (var i in list)
-                {
-                    if (i is string) items.Add((string)i);
-                    else if (i is Expr) items.Add((Expr)i);
-                }
+                items = list.ToList();
             }
 
             public override bool Equals(object obj)
@@ -334,6 +329,51 @@ namespace UnitTest
                             "d", "d", "d", "d")))));
 
             CheckFail(expr, "(");
+        }
+
+        [TestMethod]
+        public void OnParse()
+        {
+            int called = 0;
+            var p = Chars.Const('a').Return(() => 1);
+
+            p.OnParse(v =>
+            {
+                Assert.IsTrue(v.IsValid);
+                called++;
+            })(new ParseInput<char>("a"));
+            Assert.IsTrue(called == 1);
+
+            p.OnParse(v =>
+            {
+                Assert.IsFalse(v.IsValid);
+                called++;
+            })(new ParseInput<char>("b"));
+            Assert.IsTrue(called == 2);
+
+            p.OnMatch(v =>
+            {
+                called++;
+            })(new ParseInput<char>("a"));
+            Assert.IsTrue(called == 3);
+
+            p.OnMatch(v =>
+            {
+                called++;
+            })(new ParseInput<char>("b"));
+            Assert.IsTrue(called == 3);
+
+            p.OnFail(() =>
+            {
+                called++;
+            })(new ParseInput<char>("a"));
+            Assert.IsTrue(called == 3);
+
+            p.OnFail(() =>
+            {
+                called++;
+            })(new ParseInput<char>("b"));
+            Assert.IsTrue(called == 4);
         }
     }
 }

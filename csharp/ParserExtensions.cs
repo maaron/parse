@@ -88,6 +88,14 @@ namespace Parse
                 };
             }
 
+            public static Parser<T, V> Return<T, V>(this Parser<T> p, Func<V> f)
+            {
+                return (input) =>
+                {
+                    return p(input).MapValue(f);
+                };
+            }
+
             public static Parser<T, V> If<T, V>(this Parser<T, V> p, Func<V, bool> predicate)
             {
                 return Combinators.Condition(p, predicate);
@@ -131,6 +139,21 @@ namespace Parse
             public static Parser<T, V1> Except<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> not)
             {
                 return Combinators.Not(not).And(p);
+            }
+
+            public static Parser<T, V> OnParse<T, V>(this Parser<T, V> p, Action<Maybe<V>> action)
+            {
+                return Combinators.ParseAction(p, action);
+            }
+
+            public static Parser<T, V> OnMatch<T, V>(this Parser<T, V> p, Action<V> action)
+            {
+                return Combinators.MatchAction(p, action);
+            }
+
+            public static Parser<T, V> OnFail<T, V>(this Parser<T, V> p, Action action)
+            {
+                return Combinators.FailAction(p, action);
             }
         }
     }

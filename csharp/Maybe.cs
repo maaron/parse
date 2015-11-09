@@ -44,5 +44,10 @@ namespace Functional
             if (valid) some(value);
             else none();
         }
+
+        public static implicit operator Maybe<T>(T value)
+        {
+            return new Maybe<T>(value);
+        }
     }
 }
