@@ -132,6 +132,16 @@ namespace Parse
             {
                 return Combinators.Not(not).And(p);
             }
+
+            public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> delim)
+            {
+                return delim.And(p).And(delim);
+            }
+
+            public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> left, Parser<T> right)
+            {
+                return left.And(p).And(right);
+            }
         }
     }
 }
