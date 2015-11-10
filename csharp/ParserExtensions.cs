@@ -82,18 +82,12 @@ namespace Parse
 
             public static Parser<T, V2> Return<T, V1, V2>(this Parser<T, V1> p, Func<V1, V2> f)
             {
-                return (input) =>
-                {
-                    return p(input).MapValue(f);
-                };
+                return (input) => p(input).MapValue(f);
             }
 
             public static Parser<T, V> Return<T, V>(this Parser<T> p, Func<V> f)
             {
-                return (input) =>
-                {
-                    return p(input).MapValue(f);
-                };
+                return (input) => p(input).MapValue(f);
             }
 
             public static Parser<T, V> If<T, V>(this Parser<T, V> p, Func<V, bool> predicate)
@@ -117,6 +111,11 @@ namespace Parse
             }
 
             public static Parser<T, List<V>> Repeated<T, V>(this Parser<T, V> p, int min)
+            {
+                return Combinators.AtLeastMany(p, min);
+            }
+
+            public static Parser<T> Repeated<T>(this Parser<T> p, int min)
             {
                 return Combinators.AtLeastMany(p, min);
             }
@@ -174,6 +173,12 @@ namespace Parse
             public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> left, Parser<T> right)
             {
                 return left.And(p).And(right);
+            }
+
+            public static Parser<T, Anchor<T, V>> Anchored<T, V>(this Parser<T, V> p)
+            {
+                return (input) => p(input).MapValue(
+                    v => new Anchor<T, V>(input, v));
             }
         }
     }

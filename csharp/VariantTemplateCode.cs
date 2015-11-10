@@ -12,7 +12,7 @@ namespace Parse
 
         public IEnumerable<int> Indeces
         {
-            get { return Enumerable.Range(0, Count); }
+            get { return Enumerable.Range(1, Count); }
         }
 
         public string TypeList

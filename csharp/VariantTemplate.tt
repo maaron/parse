@@ -37,18 +37,18 @@ namespace Functional
 
         public T Visit<T>(<#= VisitFuncParams #>)
         {
-<# foreach (var i in Enumerable.Range(0, Count - 1)) { #>
+<# foreach (var i in Enumerable.Range(1, Count - 1)) { #>
             if (value is T<#= i #>) return f<#= i #>(this.Item<#= i #>);
 <# } #>
-            else return f<#= Count - 1 #>(this.Item<#= Count - 1 #>);
+            else return f<#= Count #>(this.Item<#= Count #>);
         }
 
         public void Visit(<#= VisitActionParams #>)
         {
-<# foreach (var i in Enumerable.Range(0, Count - 1)) { #>
+<# foreach (var i in Enumerable.Range(1, Count - 1)) { #>
             if (value is T<#= i #>) f<#= i #>(this.Item<#= i #>);
 <# } #>
-            else f<#= Count - 1 #>(this.Item<#= Count - 1 #>);
+            else f<#= Count #>(this.Item<#= Count #>);
         }
 
         public override bool Equals(object other)

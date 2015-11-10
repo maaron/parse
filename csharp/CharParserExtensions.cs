@@ -5,6 +5,14 @@ namespace Parse
 {
     namespace Character
     {
+        public static class ParserExtensions
+        {
+            public static Parser<char, string> ReturnString(this Parser<char> p)
+            {
+                return Chars.String(p);
+            }
+        }
+
         public static class CharParserExtensions
         {
             public static Parser<char, V> And<V>(this char c, Parser<char, V> p)

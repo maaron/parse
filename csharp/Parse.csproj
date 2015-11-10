@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alternate.cs" />
+    <Compile Include="Anchor.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
     <Compile Include="TransformParser.cs" />

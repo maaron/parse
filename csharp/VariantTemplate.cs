@@ -165,7 +165,7 @@ namespace Parse
             this.Write(")\r\n        {\r\n");
             
             #line 40 "C:\Users\am004308\dev\learn\parse\csharp\VariantTemplate.tt"
- foreach (var i in Enumerable.Range(0, Count - 1)) { 
+ foreach (var i in Enumerable.Range(1, Count - 1)) { 
             
             #line default
             #line hidden
@@ -200,14 +200,14 @@ namespace Parse
             this.Write("            else return f");
             
             #line 43 "C:\Users\am004308\dev\learn\parse\csharp\VariantTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Count - 1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Count));
             
             #line default
             #line hidden
             this.Write("(this.Item");
             
             #line 43 "C:\Users\am004308\dev\learn\parse\csharp\VariantTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Count - 1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Count));
             
             #line default
             #line hidden
@@ -221,7 +221,7 @@ namespace Parse
             this.Write(")\r\n        {\r\n");
             
             #line 48 "C:\Users\am004308\dev\learn\parse\csharp\VariantTemplate.tt"
- foreach (var i in Enumerable.Range(0, Count - 1)) { 
+ foreach (var i in Enumerable.Range(1, Count - 1)) { 
             
             #line default
             #line hidden
@@ -256,14 +256,14 @@ namespace Parse
             this.Write("            else f");
             
             #line 51 "C:\Users\am004308\dev\learn\parse\csharp\VariantTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Count - 1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Count));
             
             #line default
             #line hidden
             this.Write("(this.Item");
             
             #line 51 "C:\Users\am004308\dev\learn\parse\csharp\VariantTemplate.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Count - 1));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Count));
             
             #line default
             #line hidden

@@ -472,5 +472,20 @@ namespace UnitTest
 
             Assert.IsTrue(range.Remaining().SequenceEqual("3456"));
         }
+
+        [TestMethod]
+        public void Anchored()
+        {
+            var input = new ParseInput<char>("1234 5678");
+            var num = Chars.Digit.Ignored().Repeated(1).ReturnString().Anchored();
+            var parser = num.And(' ').And(num);
+            var result = parser(input);
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(result.Success.Value.Item1.Location.CompareTo(
+                input) == 0);
+
+            Assert.IsTrue(result.Success.Value.Item2.Location.CompareTo(
+                input.Next().Next().Next().Next().Next()) == 0);
+        }
     }
 }
