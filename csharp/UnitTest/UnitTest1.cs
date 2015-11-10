@@ -380,14 +380,29 @@ namespace UnitTest
         [TestMethod]
         public void FilterParser()
         {
-            var filter = new FilterParser<char>(
-                new ParseInput<char>("1a12b123c2134d"), 
-                Chars.Digit.Ignored().Repeated());
+            List<int> numbers = new List<int>();
+            var number = Chars.Digit.Repeated(1).Return(l => int.Parse(new string(l.ToArray())));
+            IParseInput<char> filter = new FilterParser<char>(
+                new ParseInput<char>("1a12b123c1234d"), 
+                number.OnMatch(
+                    n => numbers.Add(n)).Ignored());
 
             Assert.IsTrue(filter.Current == 'a');
-            Assert.IsTrue(filter.Next().Current == 'b');
-            Assert.IsTrue(filter.Next().Next().Current == 'c');
-            Assert.IsTrue(filter.Next().Next().Next().Current == 'd');
+            filter = filter.Next();
+            Assert.IsTrue(filter.Current == 'b');
+            filter = filter.Next();
+            Assert.IsTrue(filter.Current == 'c');
+            filter = filter.Next();
+            Assert.IsTrue(filter.Current == 'd');
+            Assert.IsTrue(numbers.SequenceEqual(new[] { 1, 12, 123, 1234 }));
+        }
+
+        [TestMethod]
+        public void Repeated()
+        {
+            var number = Chars.Digit.Repeated(1).Return(l => int.Parse(new string(l.ToArray())));
+            CheckMatch(number, "123", 123);
+            CheckFail(number, "");
         }
 
         [TestMethod]

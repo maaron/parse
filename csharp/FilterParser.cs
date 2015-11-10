@@ -12,7 +12,7 @@ namespace Parse
             : base(input)
         {
             this.Parser = parser;
-            adapted = Parser.Repeated()(adapted.Next()).Visit(
+            adapted = Parser.Repeated()(adapted).Visit(
                 (success) => success.Remaining,
                 (failure) => failure.Remaining);
         }
