@@ -8,7 +8,7 @@ namespace Parse
     {
         public static Parser<T, V> ParseAction<T, V>(
             Parser<T, V> parser,
-            Action<Either<Success<T, V>, Failure<T>>> action)
+            Action<Result<T, V>> action)
         {
             return (input) =>
             {

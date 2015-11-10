@@ -265,7 +265,7 @@ namespace UnitTest
                 items = new List<Variant<Expr, string>>();
             }
 
-            public Expr(params Either<Expr, string>[] list)
+            public Expr(params Variant<Expr, string>[] list)
             {
                 items = list.ToList();
                 }
@@ -340,14 +340,14 @@ namespace UnitTest
 
             p.OnParse(r =>
             {
-                Assert.IsTrue(r.IsLeft);
+                Assert.IsTrue(r.IsSuccess);
                 called++;
             })(new ParseInput<char>("a"));
             Assert.IsTrue(called == 1);
 
             p.OnParse(r =>
             {
-                Assert.IsFalse(r.IsLeft);
+                Assert.IsFalse(r.IsSuccess);
                 called++;
             })(new ParseInput<char>("b"));
             Assert.IsTrue(called == 2);

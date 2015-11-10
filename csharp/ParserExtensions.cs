@@ -60,8 +60,8 @@ namespace Parse
 
             // This is a special case of alternation where both parsers return 
             // the same value type.  With normal Or(), you'd still wind up with 
-            // an Either<T, T>.  OrSame, on the other hand, coalesces 
-            // Either<T,T> to just T.  This is particularly useful, for example, 
+            // an Variant<T, T>.  OrSame, on the other hand, coalesces 
+            // Variant<T,T> to just T.  This is particularly useful, for example, 
             // when building character classes, e.g., Digit.OrSame(Letter).  
             // Unfortunately, type inference fails if we where to rename this
             // method to just Or().
@@ -141,7 +141,7 @@ namespace Parse
                 return Combinators.Not(not).And(p);
             }
 
-            public static Parser<T, V> OnParse<T, V>(this Parser<T, V> p, Action<Either<Success<T, V>, Failure<T>>> action)
+            public static Parser<T, V> OnParse<T, V>(this Parser<T, V> p, Action<Result<T, V>> action)
             {
                 return Combinators.ParseAction(p, action);
             }
