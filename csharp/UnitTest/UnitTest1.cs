@@ -441,5 +441,15 @@ namespace UnitTest
             Assert.IsTrue((string)visitRet == "asdf qwer");
             Assert.IsTrue(compiled.Errors.Count == 0);
         }
+
+        [TestMethod]
+        public void TransformParser()
+        {
+            var parser = Chars.Letter.Repeated(1).Return(
+                l => new string(l.ToArray())).And(' ');
+
+            var input = new ParseInput<char>("asdf qwer zxcv ");
+            IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
+        }
     }
 }

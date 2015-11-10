@@ -42,6 +42,7 @@
     <Compile Include="Alternate.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
+    <Compile Include="TransformParser.cs" />
     <Compile Include="Variant.cs" />
     <Compile Include="FilterParser.cs" />
     <Compile Include="If.cs" />
