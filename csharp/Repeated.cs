@@ -7,12 +7,12 @@ namespace Parse
 {
     public partial class Combinators
     {
-        public static Parser<T, List<V>> ZeroOrMore<T, V>(
+        public static Parser<T, FList<V>> ZeroOrMore<T, V>(
             Parser<T, V> parser)
         {
             return (input) =>
             {
-                var matches = new List<V>();
+                var matches = new FList<V>();
                 bool failed = false;
                 while (!failed)
                 {
@@ -73,12 +73,12 @@ namespace Parse
             };
         }
 
-        public static Parser<T, List<V>> Repeat<T, V>(
+        public static Parser<T, FList<V>> Repeat<T, V>(
             Parser<T, V> parser, int count)
         {
             return (input) =>
             {
-                var matches = new List<V>();
+                var matches = new FList<V>();
                 bool failed = false;
                 for (int i = 0; i < count; i++)
                 {
@@ -90,12 +90,12 @@ namespace Parse
                         },
                         (failure) => { failed = true; });
                 }
-                return failed ? Result.Fail<T, List<V>>(input)
+                return failed ? Result.Fail<T, FList<V>>(input)
                     : Result.Match(matches, input);
             };
         }
 
-        public static Parser<T, List<V>> AtLeastMany<T, V>(Parser<T, V> parser, int min)
+        public static Parser<T, FList<V>> AtLeastMany<T, V>(Parser<T, V> parser, int min)
         {
             return ZeroOrMore(parser).If(l => l.Count >= min);
         }

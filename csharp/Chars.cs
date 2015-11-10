@@ -55,6 +55,18 @@ namespace Parse
                 };
             }
 
+            public static Parser<char, string> String<V>(Parser<char, V> p)
+            {
+                return (input) =>
+                {
+                    return p(input).Visit(
+                        (success) => Result.Match(
+                            input.Remaining(success.Remaining).AsString(),
+                            success.Remaining),
+                        (failure) => Result.Fail<char, string>(failure.Remaining));
+                };
+            }
+
             public static Parser<char, char> Space = Any.If(System.Char.IsWhiteSpace);
             public static Parser<char, char> Control = Any.If(System.Char.IsControl);
             public static Parser<char, char> Digit = Any.If(System.Char.IsDigit);

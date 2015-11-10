@@ -7,7 +7,7 @@ namespace Parse
 {
     public partial class Combinators
     {
-        public static Parser<T, List<V>> Split<T, V>(
+        public static Parser<T, FList<V>> Split<T, V>(
             Parser<T, V> parser,
             Parser<T> delimiter)
         {
@@ -17,7 +17,7 @@ namespace Parse
             });
         }
 
-        public static Parser<T, List<V1>> Split<T, V1, V2>(
+        public static Parser<T, FList<V1>> Split<T, V1, V2>(
             Parser<T, V1> parser,
             Parser<T, V2> delimiter)
         {

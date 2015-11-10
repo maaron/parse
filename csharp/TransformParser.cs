@@ -48,7 +48,7 @@ namespace Parse
 
         public IParseInput<V> Next()
         {
-            return new TransformParser<T, V>(adapted.Next(), parser);
+            return new TransformParser<T, V>(adapted, parser);
         }
 
         public void OnFail()

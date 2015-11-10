@@ -11,6 +11,11 @@ namespace Parse
             {
                 return Chars.String(p);
             }
+
+            public static Parser<char, string> ReturnString<V>(this Parser<char, V> p)
+            {
+                return Chars.String(p);
+            }
         }
 
         public static class CharParserExtensions

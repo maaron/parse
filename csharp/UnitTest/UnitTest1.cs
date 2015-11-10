@@ -21,13 +21,6 @@ namespace UnitTest
             return a.Equals(b);
         }
 
-        private static void CheckMatches<T>(Parser<char, List<T>> p, string input, IEnumerable<T> value)
-        {
-            var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsSuccess);
-            Assert.IsFalse(value.Zip(result.Success.Value, (a, b) => a.Equals(b)).Contains(false));
-        }
-
         private static void CheckMatch<V>(Parser<char, V> p, string input, V value)
         {
             var result = p(new ParseInput<char>(input));
@@ -86,7 +79,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void TestEitherStructuralEquality()
+        public void EitherStructuralEquality()
         {
             Assert.IsTrue(ValueEquals(
                 new Variant<char, int>('a'),
@@ -105,7 +98,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void TestSequence()
+        public void Sequence()
         {
             var Digit = Chars.Digit;
             var two = Digit.And(Digit);
@@ -120,7 +113,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void TestAlternate()
+        public void Alternate()
         {
             var Digit = Chars.Digit;
             var twoDigits = Digit.And(Digit);
@@ -134,7 +127,7 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void TestAlternateSameValueType()
+        public void AlternateSameValueType()
         {
             var two = Chars.Letter.OrSame(Chars.Digit);
 
@@ -142,19 +135,19 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void TestSplit()
+        public void Split()
         {
             var digit = Chars.Digit;
             var letter = Chars.Letter;
             var split = Combinators.Split(digit, letter);
-            CheckMatches(split, "1a2b3c4d5", new[]{ '1', '2', '3', '4', '5' });
+            CheckMatch(split, "1a2b3c4d5", FList.Create('1', '2', '3', '4', '5'));
 
             var splitBy = digit.SplitBy(letter);
-            CheckMatches(splitBy, "1a2b3c4d5", new[] { '1', '2', '3', '4', '5' });
+            CheckMatch(splitBy, "1a2b3c4d5", FList.Create('1', '2', '3', '4', '5'));
         }
 
         [TestMethod]
-        public void TestCsv()
+        public void Csv()
         {
             var comma = Chars.Const(',');
             var crlf = "\r\n".Or('\r').Or('\n');
@@ -299,10 +292,9 @@ namespace UnitTest
         public void Recursive()
         {
             // Lisp-style lists
-            var token = Chars.Letter.Repeated(1).Return(
-                l => new String(l.ToArray()));
+            var token = Chars.Letter.Repeated(1).ReturnString();
 
-            var ws = Combinators.Ignore(Chars.Space).Repeated();
+            var ws = Chars.Space.Ignored().Repeated();
 
             // This is a little "delayed-binding" trick in order to get a 
             // recursive parser.  An alternative is to use a normal function
@@ -446,11 +438,13 @@ namespace UnitTest
         [TestMethod]
         public void TransformParser()
         {
-            var parser = Chars.Letter.Repeated(1).Return(
-                l => new string(l.ToArray())).And(' ');
+            var parser = Chars.Letter.Repeated(1).ReturnString().And(' ');
 
             var input = new ParseInput<char>("asdf qwer zxcv ");
             IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
+            Assert.IsTrue(transformed.Current == "asdf");
+            Assert.IsTrue(transformed.Next().Current == "qwer");
+            Assert.IsTrue(transformed.Next().Next().Current == "zxcv");
         }
 
         [TestMethod]
@@ -476,16 +470,28 @@ namespace UnitTest
         [TestMethod]
         public void Anchored()
         {
-            var input = new ParseInput<char>("1234 5678");
+            var input = new ParseInput<char>("1234 567");
             var num = Chars.Digit.Ignored().Repeated(1).ReturnString().Anchored();
             var parser = num.And(' ').And(num);
             var result = parser(input);
+            
             Assert.IsTrue(result.IsSuccess);
-            Assert.IsTrue(result.Success.Value.Item1.Location.CompareTo(
+            
+            Assert.IsTrue(result.Success.Value.Item1.Start.CompareTo(
                 input) == 0);
 
-            Assert.IsTrue(result.Success.Value.Item2.Location.CompareTo(
+            Assert.IsTrue(result.Success.Value.Item1.End.CompareTo(
+                input.Next().Next().Next().Next()) == 0);
+
+            Assert.IsTrue(result.Success.Value.Item1.Value == "1234");
+
+            Assert.IsTrue(result.Success.Value.Item2.Start.CompareTo(
                 input.Next().Next().Next().Next().Next()) == 0);
+
+            Assert.IsTrue(result.Success.Value.Item2.End.CompareTo(
+                input.Next().Next().Next().Next().Next().Next().Next().Next()) == 0);
+
+            Assert.IsTrue(result.Success.Value.Item2.Value == "567");
         }
     }
 }

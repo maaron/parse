@@ -70,12 +70,12 @@ namespace Parse
                 return Combinators.AlternateSame(p, next);
             }
 
-            public static Parser<T, List<V>> SplitBy<T, V>(this Parser<T, V> p, Parser<T> delimiter)
+            public static Parser<T, FList<V>> SplitBy<T, V>(this Parser<T, V> p, Parser<T> delimiter)
             {
                 return Combinators.Split(p, delimiter);
             }
 
-            public static Parser<T, List<V1>> SplitBy<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> delimiter)
+            public static Parser<T, FList<V1>> SplitBy<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> delimiter)
             {
                 return Combinators.Split(p, delimiter);
             }
@@ -105,12 +105,12 @@ namespace Parse
                 return Combinators.ZeroOrMore(p);
             }
 
-            public static Parser<T, List<V>> Repeated<T, V>(this Parser<T, V> p)
+            public static Parser<T, FList<V>> Repeated<T, V>(this Parser<T, V> p)
             {
                 return Combinators.ZeroOrMore(p);
             }
 
-            public static Parser<T, List<V>> Repeated<T, V>(this Parser<T, V> p, int min)
+            public static Parser<T, FList<V>> Repeated<T, V>(this Parser<T, V> p, int min)
             {
                 return Combinators.AtLeastMany(p, min);
             }
@@ -177,8 +177,14 @@ namespace Parse
 
             public static Parser<T, Anchor<T, V>> Anchored<T, V>(this Parser<T, V> p)
             {
-                return (input) => p(input).MapValue(
-                    v => new Anchor<T, V>(input, v));
+                return (input) => p(input).Visit(
+                    (success) => Result.Match(
+                        new Anchor<T, V>(
+                            input, 
+                            success.Remaining, 
+                            success.Value), 
+                        success.Remaining),
+                    (failure) => Result.Fail<T, Anchor<T, V>>(failure.Remaining));
             }
         }
     }
