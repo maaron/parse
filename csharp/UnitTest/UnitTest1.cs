@@ -340,6 +340,7 @@ namespace UnitTest
         [TestMethod]
         public void VariantTemplate()
         {
+            // Generate. compile, and load code for a 4-type Variant
             var templ = new VariantTemplate(4);
             var code = templ.TransformText();
             var p = new Microsoft.CSharp.CSharpCodeProvider();
@@ -347,22 +348,22 @@ namespace UnitTest
                 new System.CodeDom.Compiler.CompilerParameters(),
                 code);
 
-            var tuple4Class = compiled.CompiledAssembly.ExportedTypes.First()
+            var var4Class = compiled.CompiledAssembly.ExportedTypes.First()
                 .MakeGenericType(typeof(char), typeof(int), typeof(string), typeof(bool));
 
-            var ctors = tuple4Class.GetConstructors();
+            var ctors = var4Class.GetConstructors();
             var query = from c in ctors
                         from param in c.GetParameters()
                         where param.ParameterType == typeof(string)
                         select c;
 
-            var tuple4 = query.First().Invoke(new Object[] {"asdf"});
+            var var4 = query.First().Invoke(new Object[] {"asdf"});
 
-            var visitQuery = from m in tuple4Class.GetMethods()
+            var visitQuery = from m in var4Class.GetMethods()
                 where m.Name == "Visit" && m.IsGenericMethod
                 select m;
             
-            var visitRet = visitQuery.First().MakeGenericMethod(typeof(string)).Invoke(tuple4, new Object[]{
+            var visitRet = visitQuery.First().MakeGenericMethod(typeof(string)).Invoke(var4, new Object[]{
                  new Func<char, string>(i => i + " qwer"),
                  new Func<int, string>(i => i + " qwer"),
                  new Func<string, string>(i => i + " qwer"),
