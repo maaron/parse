@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Parse;
@@ -69,7 +70,7 @@ namespace UnitTest
         private static void CheckFail<V>(Parser<char, V> p, string input)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(result.IsFailure);
         }
 
         // This little helper is weird, but needed in order to construct an 
@@ -334,6 +335,42 @@ namespace UnitTest
                             "d", "d", "d", "d")))));
 
             CheckFail(expr, "(");
+        }
+
+        [TestMethod]
+        public void VariantTemplate()
+        {
+            var templ = new VariantTemplate(4);
+            var code = templ.TransformText();
+            var p = new Microsoft.CSharp.CSharpCodeProvider();
+            var compiled = p.CompileAssemblyFromSource(
+                new System.CodeDom.Compiler.CompilerParameters(),
+                code);
+
+            var tuple4Class = compiled.CompiledAssembly.ExportedTypes.First()
+                .MakeGenericType(typeof(char), typeof(int), typeof(string), typeof(bool));
+
+            var ctors = tuple4Class.GetConstructors();
+            var query = from c in ctors
+                        from param in c.GetParameters()
+                        where param.ParameterType == typeof(string)
+                        select c;
+
+            var tuple4 = query.First().Invoke(new Object[] {"asdf"});
+
+            var visitQuery = from m in tuple4Class.GetMethods()
+                where m.Name == "Visit" && m.IsGenericMethod
+                select m;
+            
+            var visitRet = visitQuery.First().MakeGenericMethod(typeof(string)).Invoke(tuple4, new Object[]{
+                 new Func<char, string>(i => i + " qwer"),
+                 new Func<int, string>(i => i + " qwer"),
+                 new Func<string, string>(i => i + " qwer"),
+                 new Func<bool, string>(i => i + " qwer")
+            });
+
+            Assert.IsTrue((string)visitRet == "asdf qwer");
+            Assert.IsTrue(compiled.Errors.Count == 0);
         }
     }
 }
