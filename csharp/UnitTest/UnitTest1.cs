@@ -461,5 +461,16 @@ namespace UnitTest
             Assert.IsTrue(input.Next().Remaining().AsString() == "sdf");
             Assert.IsTrue(input.Remaining(input.Next().Next()).AsString() == "as");
         }
+
+        [TestMethod]
+        public void InputRange()
+        {
+            var input = new ParseInput<char>("12345678");
+            var range = new InputRange<char>(
+                input.Next().Next(),
+                input.Next().Next().Next().Next().Next().Next());
+
+            Assert.IsTrue(range.Remaining().SequenceEqual("3456"));
+        }
     }
 }

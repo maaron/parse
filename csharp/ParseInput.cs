@@ -48,46 +48,24 @@ namespace Parse
         void OnMatch();
     }
 
-    public class InputRange<T> : IParseInput<T>
+    public class InputRange<T> : AdaptedParseInput<T>
     {
-        IParseInput<T> start, end;
+        IParseInput<T> end;
 
         public InputRange(IParseInput<T> start, IParseInput<T> end)
+            : base(start)
         {
-            this.start = start;
             this.end = end;
         }
 
-        public T Current
+        public override bool IsEnd
         {
-            get { return start.Current; }
+            get { return adapted.CompareTo(end) >= 0; }
         }
 
-        public bool IsEnd
+        public override IParseInput<T> Next()
         {
-            get { return start.CompareTo(end) < 0; }
-        }
-
-        public IParseInput<T> Next()
-        {
-            return new InputRange<T>(start.Next(), end);
-        }
-
-        public void OnFail()
-        {
-            start.OnFail();
-        }
-
-        public void OnMatch()
-        {
-            start.OnMatch();
-        }
-
-        public int CompareTo(IParseInput<T> other)
-        {
-            return other == null ? 1
-                : !(other is InputRange<T>) ? 1
-                : start.CompareTo(((InputRange<T>)other).start);
+            return new InputRange<T>(adapted.Next(), end);
         }
     }
 
@@ -243,7 +221,7 @@ namespace Parse
             }
         }
 
-        public bool IsEnd
+        public virtual bool IsEnd
         {
             get
             {
