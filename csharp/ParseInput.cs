@@ -7,7 +7,38 @@ using System.Threading.Tasks;
 
 namespace Parse
 {
-    public interface IParseInput<T> : IComparable<IParseInput<T>>, IEnumerable<T>
+    namespace InputExtensions
+    {
+        public static class Extensions
+        {
+            public static IEnumerable<T> Remaining<T>(this IParseInput<T> input)
+            {
+                while (!input.IsEnd)
+                {
+                    yield return input.Current;
+                    input = input.Next();
+                }
+            }
+
+            public static IEnumerable<T> Remaining<T>(this IParseInput<T> input, IParseInput<T> until)
+            {
+                while (input.CompareTo(until) < 0)
+                {
+                    yield return input.Current;
+                    input = input.Next();
+                }
+            }
+
+            public static string AsString(this IEnumerable<char> sequence)
+            {
+                var sb = new StringBuilder();
+                foreach (var c in sequence) sb.Append(c);
+                return sb.ToString();
+            }
+        }
+    }
+
+    public interface IParseInput<T> : IComparable<IParseInput<T>>
     {
         T Current { get; }
         bool IsEnd { get; }
@@ -15,6 +46,49 @@ namespace Parse
 
         void OnFail();
         void OnMatch();
+    }
+
+    public class InputRange<T> : IParseInput<T>
+    {
+        IParseInput<T> start, end;
+
+        public InputRange(IParseInput<T> start, IParseInput<T> end)
+        {
+            this.start = start;
+            this.end = end;
+        }
+
+        public T Current
+        {
+            get { return start.Current; }
+        }
+
+        public bool IsEnd
+        {
+            get { return start.CompareTo(end) < 0; }
+        }
+
+        public IParseInput<T> Next()
+        {
+            return new InputRange<T>(start.Next(), end);
+        }
+
+        public void OnFail()
+        {
+            start.OnFail();
+        }
+
+        public void OnMatch()
+        {
+            start.OnMatch();
+        }
+
+        public int CompareTo(IParseInput<T> other)
+        {
+            return other == null ? 1
+                : !(other is InputRange<T>) ? 1
+                : start.CompareTo(((InputRange<T>)other).start);
+        }
     }
 
     public class ErrorHeuristic<Position> where Position : IComparable<Position>
@@ -110,16 +184,6 @@ namespace Parse
 
             return Position.CompareTo(((ParseInput<T>)other).Position);
         }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return ((IEnumerable<T>)data).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return data.GetEnumerator();
-        }
     }
 
     public struct LineColumn : IComparable<LineColumn>
@@ -212,16 +276,6 @@ namespace Parse
         public int CompareTo(IParseInput<T> other)
         {
             return adapted.CompareTo(other);
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return adapted.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return adapted.GetEnumerator();
         }
     }
 

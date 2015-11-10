@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Parse.Extensions;
+using Parse.InputExtensions;
 
 namespace Parse
 {
@@ -39,6 +40,18 @@ namespace Parse
                         else input = input.Next();
                     }
                     return Result.Match(input);
+                };
+            }
+
+            public static Parser<char, string> String(Parser<char> p)
+            {
+                return (input) =>
+                {
+                    return p(input).Visit(
+                        (success) => Result.Match(
+                            input.Remaining(success.Remaining).AsString(),
+                            success.Remaining),
+                        (failure) => Result.Fail<char, string>(failure.Remaining));
                 };
             }
 

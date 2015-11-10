@@ -60,15 +60,5 @@ namespace Parse
         {
             throw new NotImplementedException();
         }
-
-        public IEnumerator<V> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

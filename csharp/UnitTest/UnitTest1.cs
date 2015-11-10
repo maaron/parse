@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Parse;
 using Parse.Extensions;
+using Parse.InputExtensions;
 using Parse.Character;
 using Functional;
 
@@ -450,6 +451,15 @@ namespace UnitTest
 
             var input = new ParseInput<char>("asdf qwer zxcv ");
             IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
+        }
+
+        [TestMethod]
+        public void InputExtensions()
+        {
+            var input = new ParseInput<char>("asdf");
+            Assert.IsTrue(input.Remaining().AsString() == "asdf");
+            Assert.IsTrue(input.Next().Remaining().AsString() == "sdf");
+            Assert.IsTrue(input.Remaining(input.Next().Next()).AsString() == "as");
         }
     }
 }
