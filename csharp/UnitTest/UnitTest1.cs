@@ -340,7 +340,7 @@ namespace UnitTest
         [TestMethod]
         public void VariantTemplate()
         {
-            // Generate. compile, and load code for a 4-type Variant
+            // Generate and compile code for a Variant(T0, T1, T2, T3) class
             var templ = new VariantTemplate(4);
             var code = templ.TransformText();
             var p = new Microsoft.CSharp.CSharpCodeProvider();
@@ -348,30 +348,30 @@ namespace UnitTest
                 new System.CodeDom.Compiler.CompilerParameters(),
                 code);
 
+            Assert.IsTrue(compiled.Errors.Count == 0);
+
+            // Get the generic class from the compiled assembly and supply 
+            // type parameters to create a concrete class, i.e., 
+            // Variant<char, int, string, bool>.
             var var4Class = compiled.CompiledAssembly.ExportedTypes.First()
                 .MakeGenericType(typeof(char), typeof(int), typeof(string), typeof(bool));
 
+            // Call the "string" constructor
             var ctors = var4Class.GetConstructors();
             var query = from c in ctors
                         from param in c.GetParameters()
                         where param.ParameterType == typeof(string)
                         select c;
 
-            var var4 = query.First().Invoke(new Object[] {"asdf"});
+            dynamic var4 = query.First().Invoke(new Object[] {"asdf"});
 
-            var visitQuery = from m in var4Class.GetMethods()
-                where m.Name == "Visit" && m.IsGenericMethod
-                select m;
-            
-            var visitRet = visitQuery.First().MakeGenericMethod(typeof(string)).Invoke(var4, new Object[]{
-                 new Func<char, string>(i => i + " qwer"),
-                 new Func<int, string>(i => i + " qwer"),
-                 new Func<string, string>(i => i + " qwer"),
-                 new Func<bool, string>(i => i + " qwer")
-            });
+            dynamic visitRet = var4.Visit(
+                new Func<char, string>(i => i + " char"),
+                new Func<int, string>(i => i + " int"),
+                new Func<string, string>(i => i + " string"),
+                new Func<bool, string>(i => i + " bool"));
 
-            Assert.IsTrue((string)visitRet == "asdf qwer");
-            Assert.IsTrue(compiled.Errors.Count == 0);
+            Assert.IsTrue(visitRet == "asdf string");
         }
     }
 }
