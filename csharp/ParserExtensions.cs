@@ -141,7 +141,7 @@ namespace Parse
                 return Combinators.Not(not).And(p);
             }
 
-            public static Parser<T, V> OnParse<T, V>(this Parser<T, V> p, Action<Maybe<V>> action)
+            public static Parser<T, V> OnParse<T, V>(this Parser<T, V> p, Action<Either<Success<T, V>, Failure<T>>> action)
             {
                 return Combinators.ParseAction(p, action);
             }
@@ -151,9 +151,19 @@ namespace Parse
                 return Combinators.MatchAction(p, action);
             }
 
+            public static Parser<T, V> OnMatch<T, V>(this Parser<T, V> p, Action<V, IParseInput<T>> action)
+            {
+                return Combinators.MatchAction(p, action);
+            }
+
             public static Parser<T, V> OnFail<T, V>(this Parser<T, V> p, Action action)
             {
                 return Combinators.FailAction(p, action);
+            }
+
+            public static Parser<T> Ignored<T, V>(this Parser<T, V> p)
+            {
+                return Combinators.Ignore(p);
             }
         }
     }

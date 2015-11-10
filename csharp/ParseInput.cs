@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Parse
 {
-    public interface IParseInput<T>
+    public interface IParseInput<T> : IComparable<IParseInput<T>>
     {
         T Current { get; }
         bool IsEnd { get; }
@@ -100,6 +100,15 @@ namespace Parse
         {
             return data.GetHashCode() + Position;
         }
+
+        public int CompareTo(IParseInput<T> other)
+        {
+            if (!(other is ParseInput<T>))
+                throw new ArgumentException(
+                    "Argument must be a ParseInput(T) type");
+
+            return Position.CompareTo(((ParseInput<T>)other).Position);
+        }
     }
 
     public struct LineColumn : IComparable<LineColumn>
@@ -188,6 +197,11 @@ namespace Parse
         }
 
         public abstract IParseInput<T> Next();
+
+        public int CompareTo(IParseInput<T> other)
+        {
+            return adapted.CompareTo(other);
+        }
     }
 
     public class LineTrackingInput : AdaptedParseInput<char>
@@ -312,6 +326,14 @@ namespace Parse
         public override int GetHashCode()
         {
             return lines.GetHashCode() ^ Position.GetHashCode();
+        }
+
+        public int CompareTo(IParseInput<char> other)
+        {
+            if (!(other is LineBasedInput)) throw new ArgumentException(
+                "Argument must be a LineBaseInput type");
+
+            return Position.CompareTo(((LineBasedInput)other).Position);
         }
     }
 }

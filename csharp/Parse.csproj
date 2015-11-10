@@ -43,6 +43,7 @@
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
     <Compile Include="Either.cs" />
+    <Compile Include="FilterParser.cs" />
     <Compile Include="If.cs" />
     <Compile Include="Ignore.cs" />
     <Compile Include="Maybe.cs" />

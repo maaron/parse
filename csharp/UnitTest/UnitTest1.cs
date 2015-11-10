@@ -337,16 +337,16 @@ namespace UnitTest
             int called = 0;
             var p = Chars.Const('a').Return(() => 1);
 
-            p.OnParse(v =>
+            p.OnParse(r =>
             {
-                Assert.IsTrue(v.IsValid);
+                Assert.IsTrue(r.IsLeft);
                 called++;
             })(new ParseInput<char>("a"));
             Assert.IsTrue(called == 1);
 
-            p.OnParse(v =>
+            p.OnParse(r =>
             {
-                Assert.IsFalse(v.IsValid);
+                Assert.IsFalse(r.IsLeft);
                 called++;
             })(new ParseInput<char>("b"));
             Assert.IsTrue(called == 2);
@@ -374,6 +374,19 @@ namespace UnitTest
                 called++;
             })(new ParseInput<char>("b"));
             Assert.IsTrue(called == 4);
+        }
+
+        [TestMethod]
+        public void FilterParser()
+        {
+            var filter = new FilterParser<char>(
+                new ParseInput<char>("1a12b123c2134d"), 
+                Chars.Digit.Ignored().Repeated());
+
+            Assert.IsTrue(filter.Current == 'a');
+            Assert.IsTrue(filter.Next().Current == 'b');
+            Assert.IsTrue(filter.Next().Next().Current == 'c');
+            Assert.IsTrue(filter.Next().Next().Next().Current == 'd');
         }
     }
 }
