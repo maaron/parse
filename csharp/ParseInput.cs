@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Parse
 {
-    public interface IParseInput<T>
+    public interface IParseInput<T> : IComparable<IParseInput<T>>, IEnumerable<T>
     {
         T Current { get; }
         bool IsEnd { get; }
@@ -100,6 +101,25 @@ namespace Parse
         {
             return data.GetHashCode() + Position;
         }
+
+        public int CompareTo(IParseInput<T> other)
+        {
+            if (!(other is ParseInput<T>))
+                throw new ArgumentException(
+                    "Argument must be a ParseInput(T) type");
+
+            return Position.CompareTo(((ParseInput<T>)other).Position);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ((IEnumerable<T>)data).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return data.GetEnumerator();
+        }
     }
 
     public struct LineColumn : IComparable<LineColumn>
@@ -188,6 +208,21 @@ namespace Parse
         }
 
         public abstract IParseInput<T> Next();
+
+        public int CompareTo(IParseInput<T> other)
+        {
+            return adapted.CompareTo(other);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return adapted.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return adapted.GetEnumerator();
+        }
     }
 
     public class LineTrackingInput : AdaptedParseInput<char>

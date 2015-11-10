@@ -42,11 +42,14 @@
     <Compile Include="Alternate.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
+    <Compile Include="TransformParser.cs" />
     <Compile Include="Variant.cs" />
+    <Compile Include="FilterParser.cs" />
     <Compile Include="If.cs" />
     <Compile Include="Ignore.cs" />
     <Compile Include="Maybe.cs" />
     <Compile Include="Not.cs" />
+    <Compile Include="ParseAction.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Parse.cs" />
     <Compile Include="ParseInput.cs" />

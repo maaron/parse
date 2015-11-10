@@ -265,15 +265,10 @@ namespace UnitTest
                 items = new List<Variant<Expr, string>>();
             }
 
-            public Expr(params Object[] list)
+            public Expr(params Variant<Expr, string>[] list)
             {
-                items = new List<Variant<Expr, string>>();
-                foreach (var i in list)
-                {
-                    if (i is string) items.Add((string)i);
-                    else if (i is Expr) items.Add((Expr)i);
+                items = list.ToList();
                 }
-            }
 
             public override bool Equals(object obj)
             {
@@ -338,6 +333,79 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void OnParse()
+        {
+            int called = 0;
+            var p = Chars.Const('a').Return(() => 1);
+
+            p.OnParse(r =>
+            {
+                Assert.IsTrue(r.IsSuccess);
+                called++;
+            })(new ParseInput<char>("a"));
+            Assert.IsTrue(called == 1);
+
+            p.OnParse(r =>
+            {
+                Assert.IsFalse(r.IsSuccess);
+                called++;
+            })(new ParseInput<char>("b"));
+            Assert.IsTrue(called == 2);
+
+            p.OnMatch(v =>
+            {
+                called++;
+            })(new ParseInput<char>("a"));
+            Assert.IsTrue(called == 3);
+
+            p.OnMatch(v =>
+            {
+                called++;
+            })(new ParseInput<char>("b"));
+            Assert.IsTrue(called == 3);
+
+            p.OnFail(() =>
+            {
+                called++;
+            })(new ParseInput<char>("a"));
+            Assert.IsTrue(called == 3);
+
+            p.OnFail(() =>
+            {
+                called++;
+            })(new ParseInput<char>("b"));
+            Assert.IsTrue(called == 4);
+        }
+
+        [TestMethod]
+        public void FilterParser()
+        {
+            List<int> numbers = new List<int>();
+            var number = Chars.Digit.Repeated(1).Return(l => int.Parse(new string(l.ToArray())));
+            IParseInput<char> filter = new FilterParser<char>(
+                new ParseInput<char>("1a12b123c1234d"), 
+                number.OnMatch(
+                    n => numbers.Add(n)).Ignored());
+
+            Assert.IsTrue(filter.Current == 'a');
+            filter = filter.Next();
+            Assert.IsTrue(filter.Current == 'b');
+            filter = filter.Next();
+            Assert.IsTrue(filter.Current == 'c');
+            filter = filter.Next();
+            Assert.IsTrue(filter.Current == 'd');
+            Assert.IsTrue(numbers.SequenceEqual(new[] { 1, 12, 123, 1234 }));
+        }
+
+        [TestMethod]
+        public void Repeated()
+        {
+            var number = Chars.Digit.Repeated(1).Return(l => int.Parse(new string(l.ToArray())));
+            CheckMatch(number, "123", 123);
+            CheckFail(number, "");
+        }
+
+        [TestMethod]
         public void VariantTemplate()
         {
             // Generate and compile code for a Variant(T0, T1, T2, T3) class
@@ -372,6 +440,16 @@ namespace UnitTest
                 new Func<bool, string>(i => i + " bool"));
 
             Assert.IsTrue(visitRet == "asdf string");
+        }
+
+        [TestMethod]
+        public void TransformParser()
+        {
+            var parser = Chars.Letter.Repeated(1).Return(
+                l => new string(l.ToArray())).And(' ');
+
+            var input = new ParseInput<char>("asdf qwer zxcv ");
+            IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
         }
     }
 }

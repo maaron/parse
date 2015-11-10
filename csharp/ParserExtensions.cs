@@ -60,8 +60,8 @@ namespace Parse
 
             // This is a special case of alternation where both parsers return 
             // the same value type.  With normal Or(), you'd still wind up with 
-            // an Either<T, T>.  OrSame, on the other hand, coalesces 
-            // Either<T,T> to just T.  This is particularly useful, for example, 
+            // an Variant<T, T>.  OrSame, on the other hand, coalesces 
+            // Variant<T,T> to just T.  This is particularly useful, for example, 
             // when building character classes, e.g., Digit.OrSame(Letter).  
             // Unfortunately, type inference fails if we where to rename this
             // method to just Or().
@@ -81,6 +81,14 @@ namespace Parse
             }
 
             public static Parser<T, V2> Return<T, V1, V2>(this Parser<T, V1> p, Func<V1, V2> f)
+            {
+                return (input) =>
+                {
+                    return p(input).MapValue(f);
+                };
+            }
+
+            public static Parser<T, V> Return<T, V>(this Parser<T> p, Func<V> f)
             {
                 return (input) =>
                 {
@@ -131,6 +139,31 @@ namespace Parse
             public static Parser<T, V1> Except<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> not)
             {
                 return Combinators.Not(not).And(p);
+            }
+
+            public static Parser<T, V> OnParse<T, V>(this Parser<T, V> p, Action<Result<T, V>> action)
+            {
+                return Combinators.ParseAction(p, action);
+            }
+
+            public static Parser<T, V> OnMatch<T, V>(this Parser<T, V> p, Action<V> action)
+            {
+                return Combinators.MatchAction(p, action);
+            }
+
+            public static Parser<T, V> OnMatch<T, V>(this Parser<T, V> p, Action<V, IParseInput<T>> action)
+            {
+                return Combinators.MatchAction(p, action);
+            }
+
+            public static Parser<T, V> OnFail<T, V>(this Parser<T, V> p, Action action)
+            {
+                return Combinators.FailAction(p, action);
+            }
+
+            public static Parser<T> Ignored<T, V>(this Parser<T, V> p)
+            {
+                return Combinators.Ignore(p);
             }
 
             public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> delim)

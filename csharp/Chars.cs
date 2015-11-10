@@ -46,6 +46,7 @@ namespace Parse
             public static Parser<char, char> Control = Any.If(System.Char.IsControl);
             public static Parser<char, char> Digit = Any.If(System.Char.IsDigit);
             public static Parser<char, char> Letter = Any.If(System.Char.IsLetter);
+            public static Parser<char, char> LetterOrDigit = Any.If(System.Char.IsLetterOrDigit);
         }
     }
 }
