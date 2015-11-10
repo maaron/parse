@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Parse;
@@ -22,54 +23,54 @@ namespace UnitTest
         private static void CheckMatches<T>(Parser<char, List<T>> p, string input, IEnumerable<T> value)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
-            Assert.IsFalse(value.Zip(result.Left.Value, (a, b) => a.Equals(b)).Contains(false));
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(value.Zip(result.Success.Value, (a, b) => a.Equals(b)).Contains(false));
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input, V value)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
-            Assert.IsTrue(ValueEquals(result.Left.Value, value));
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(ValueEquals(result.Success.Value, value));
         }
 
         private static void CheckMatch(Parser<char, string> p, string input, string value)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
-            Assert.IsTrue(result.Left.Value == value);
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(result.Success.Value == value);
         }
 
         private static void CheckMatch(Parser<char, char> p, string input, char value)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
-            Assert.IsTrue(result.Left.Value == value);
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(result.Success.Value == value);
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
+            Assert.IsTrue(result.IsSuccess);
         }
 
         private static void CheckMatch<V>(Parser<char, V> p, string input, Func<V, bool> predicate)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
-            Assert.IsTrue(predicate(result.Left.Value));
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(predicate(result.Success.Value));
         }
 
         private static void CheckMatch(Parser<char> p, string input)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsLeft);
+            Assert.IsTrue(result.IsSuccess);
         }
 
         private static void CheckFail<V>(Parser<char, V> p, string input)
         {
             var result = p(new ParseInput<char>(input));
-            Assert.IsTrue(result.IsRight);
+            Assert.IsTrue(result.IsFailure);
         }
 
         // This little helper is weird, but needed in order to construct an 
@@ -78,28 +79,28 @@ namespace UnitTest
         // Either constructor at compile time.  However, trying 
         // "new Either<T,T>(t)" doesn't compile because the call is ambiguous 
         // between Either's two constructors.
-        private static Either<A, B> SameEither<A, B>(A a)
+        private static Variant<A, B> SameEither<A, B>(A a)
         {
-            return new Either<A, B>(a);
+            return new Variant<A, B>(a);
         }
 
         [TestMethod]
         public void TestEitherStructuralEquality()
         {
             Assert.IsTrue(ValueEquals(
-                new Either<char, int>('a'),
-                new Either<char, int>('a')));
+                new Variant<char, int>('a'),
+                new Variant<char, int>('a')));
 
             Assert.IsTrue(ValueEquals(
-                new Either<char, Either<int, bool>>(new Either<int,bool>(false)),
-                new Either<char, Either<int, bool>>(new Either<int, bool>(false))));
+                new Variant<char, Variant<int, bool>>(new Variant<int,bool>(false)),
+                new Variant<char, Variant<int, bool>>(new Variant<int, bool>(false))));
 
             Assert.IsFalse(ValueEquals(
-                new Either<char, int>('a'),
-                new Either<char, int>(1)));
+                new Variant<char, int>('a'),
+                new Variant<char, int>(1)));
 
-            Assert.IsTrue(SameEither<int, int>(1).IsLeft);
-            Assert.IsTrue(SameEither<int, int>(1).IsRight);
+            Assert.IsTrue(SameEither<int, int>(1).IsItem0);
+            Assert.IsTrue(SameEither<int, int>(1).IsItem1);
         }
 
         [TestMethod]
@@ -125,8 +126,8 @@ namespace UnitTest
             var letter = Chars.Letter;
             var two = twoDigits.Or(letter);
 
-            CheckMatch(two, "a", new Either<Tuple<char, char>, char>('a'));
-            CheckMatch(two, "12", new Either<Tuple<char, char>, char>(Tuple.Create('1', '2')));
+            CheckMatch(two, "a", new Variant<Tuple<char, char>, char>('a'));
+            CheckMatch(two, "12", new Variant<Tuple<char, char>, char>(Tuple.Create('1', '2')));
             CheckFail(two, "");
             CheckFail(two, "1a");
         }
@@ -204,7 +205,7 @@ namespace UnitTest
 
             var input = new ParseInput<char>("123");
             var result = parser(input);
-            Assert.IsTrue(result.IsRight);
+            Assert.IsTrue(result.IsFailure);
             Assert.IsTrue(input.Error.LongestFailure == 3);
             Assert.IsTrue(input.Error.LongestMatch == 3);
             Assert.IsTrue(input.Error.LastMatch == 2);
@@ -257,17 +258,17 @@ namespace UnitTest
 
         class Expr
         {
-            public List<Either<Expr, string>> items;
+            public List<Variant<Expr, string>> items;
 
             public Expr()
             {
-                items = new List<Either<Expr, string>>();
+                items = new List<Variant<Expr, string>>();
             }
 
             public Expr(params Either<Expr, string>[] list)
             {
                 items = list.ToList();
-            }
+                }
 
             public override bool Equals(object obj)
             {
@@ -387,6 +388,43 @@ namespace UnitTest
             Assert.IsTrue(filter.Next().Current == 'b');
             Assert.IsTrue(filter.Next().Next().Current == 'c');
             Assert.IsTrue(filter.Next().Next().Next().Current == 'd');
+        }
+
+        [TestMethod]
+        public void VariantTemplate()
+        {
+            // Generate. compile, and load code for a 4-type Variant
+            var templ = new VariantTemplate(4);
+            var code = templ.TransformText();
+            var p = new Microsoft.CSharp.CSharpCodeProvider();
+            var compiled = p.CompileAssemblyFromSource(
+                new System.CodeDom.Compiler.CompilerParameters(),
+                code);
+
+            var var4Class = compiled.CompiledAssembly.ExportedTypes.First()
+                .MakeGenericType(typeof(char), typeof(int), typeof(string), typeof(bool));
+
+            var ctors = var4Class.GetConstructors();
+            var query = from c in ctors
+                        from param in c.GetParameters()
+                        where param.ParameterType == typeof(string)
+                        select c;
+
+            var var4 = query.First().Invoke(new Object[] {"asdf"});
+
+            var visitQuery = from m in var4Class.GetMethods()
+                where m.Name == "Visit" && m.IsGenericMethod
+                select m;
+            
+            var visitRet = visitQuery.First().MakeGenericMethod(typeof(string)).Invoke(var4, new Object[]{
+                 new Func<char, string>(i => i + " qwer"),
+                 new Func<int, string>(i => i + " qwer"),
+                 new Func<string, string>(i => i + " qwer"),
+                 new Func<bool, string>(i => i + " qwer")
+            });
+
+            Assert.IsTrue((string)visitRet == "asdf qwer");
+            Assert.IsTrue(compiled.Errors.Count == 0);
         }
     }
 }

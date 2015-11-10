@@ -108,7 +108,7 @@ namespace Parse
                     "Argument must be a ParseInput(T) type");
 
             return Position.CompareTo(((ParseInput<T>)other).Position);
-        }
+    }
     }
 
     public struct LineColumn : IComparable<LineColumn>
@@ -251,89 +251,6 @@ namespace Parse
         public override void OnMatch()
         {
             Error.OnMatch(Position);
-        }
-    }
-
-    public class LineBasedInput : IParseInput<char>
-    {
-        List<string> lines;
-        ErrorHeuristic<LineColumn> error;
-
-        public LineColumn Position { get; private set; }
-
-        public char Current
-        {
-            get { return lines[Position.Line][Position.Column]; }
-        }
-
-        public bool IsEnd
-        {
-            get { return Position.Line >= lines.Count; }
-        }
-
-        public IParseInput<char> Next()
-        {
-            return new LineBasedInput(lines, error,
-                Position.Column >= lines[Position.Line].Length ?
-                    new LineColumn(Position.Line + 1, 0) :
-                    new LineColumn(Position.Line, Position.Column + 1));
-        }
-
-        protected LineBasedInput(List<string> lines, ErrorHeuristic<LineColumn> error, LineColumn pos)
-        {
-            this.lines = lines;
-            this.error = error;
-            this.Position = pos;
-        }
-
-        public LineBasedInput(IEnumerable<char> source)
-        {
-            var sb = new StringBuilder();
-            bool cr = false;
-            foreach (char c in source)
-            {
-                sb.Append(c);
-                if (c == '\r') cr = true;
-                else if (c == '\n' || cr)
-                {
-                    lines.Add(sb.ToString());
-                    sb = new StringBuilder();
-                    cr = false;
-                }
-            }
-            this.error = new ErrorHeuristic<LineColumn>(new LineColumn());
-            this.Position = new LineColumn(0, 0);
-        }
-
-        public void OnMatch() { error.OnMatch(Position); }
-        public void OnFail() { error.OnFail(Position); }
-
-        public ErrorHeuristic<LineColumn> Error
-        {
-            get { return error; }
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || !(obj is LineBasedInput)) return false;
-
-            var other = (LineBasedInput)obj;
-
-            return Object.ReferenceEquals(lines, other.lines)
-                && Position == other.Position;
-        }
-
-        public override int GetHashCode()
-        {
-            return lines.GetHashCode() ^ Position.GetHashCode();
-        }
-
-        public int CompareTo(IParseInput<char> other)
-        {
-            if (!(other is LineBasedInput)) throw new ArgumentException(
-                "Argument must be a LineBaseInput type");
-
-            return Position.CompareTo(((LineBasedInput)other).Position);
         }
     }
 }

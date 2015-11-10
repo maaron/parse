@@ -3,6 +3,68 @@ using Functional;
 
 namespace Parse
 {
+    public class Result<T>
+    {
+        private Variant<Success<T>, Failure<T>> result;
+
+        public Result(Success<T> success)
+        {
+            this.result = success;
+        }
+
+        public Result(Failure<T> failure)
+        {
+            this.result = failure;
+        }
+
+        public bool IsSuccess { get { return result.IsItem0; } }
+        public Success<T> Success { get { return result.Item0; } }
+
+        public bool IsFailure { get { return result.IsItem1; } }
+        public Failure<T> Failure { get { return result.Item1; } }
+
+        public R Visit<R>(Func<Success<T>, R> success, Func<Failure<T>, R> failure)
+        {
+            return result.Visit(success, failure);
+        }
+
+        public void Visit(Action<Success<T>> success, Action<Failure<T>> failure)
+        {
+            result.Visit(success, failure);
+        }
+    }
+
+    public class Result<T, V>
+    {
+        private Variant<Success<T, V>, Failure<T>> result;
+
+        public Result(Success<T, V> success)
+        {
+            this.result = success;
+        }
+
+        public Result(Failure<T> failure)
+        {
+            this.result = failure;
+        }
+
+        public bool IsSuccess { get { return result.IsItem0; } }
+        public Success<T, V> Success { get { return result.Item0; } }
+
+        public bool IsFailure { get { return result.IsItem1; } }
+        public Failure<T> Failure { get { return result.Item1; } }
+
+        public R Visit<R>(Func<Success<T, V>, R> success, Func<Failure<T>, R> failure)
+        {
+            return result.Visit(success, failure);
+        }
+
+        public void Visit(Action<Success<T, V>> success, Action<Failure<T>> failure)
+        {
+            result.Visit(success, failure);
+        }
+    }
+
     public class Success<T>
     {
         public IParseInput<T> Remaining { get; private set; }
@@ -37,48 +99,48 @@ namespace Parse
 
     public static class Result
     {
-        public static Either<Success<T, V>, Failure<T>> Match<T, V>(V value, IParseInput<T> remainder)
+        public static Result<T, V> Match<T, V>(V value, IParseInput<T> remainder)
         {
             remainder.OnMatch();
-            return new Either<Success<T, V>, Failure<T>>(new Success<T, V>(value, remainder));
+            return new Result<T, V>(new Success<T, V>(value, remainder));
         }
 
-        public static Either<Success<T>, Failure<T>> Match<T>(IParseInput<T> remainder)
+        public static Result<T> Match<T>(IParseInput<T> remainder)
         {
             remainder.OnMatch();
-            return new Either<Success<T>, Failure<T>>(new Success<T>(remainder));
+            return new Result<T>(new Success<T>(remainder));
         }
 
-        public static Either<Success<T, V>, Failure<T>> Fail<T, V>(IParseInput<T> remainder)
+        public static Result<T, V> Fail<T, V>(IParseInput<T> remainder)
         {
             remainder.OnFail();
-            return new Either<Success<T, V>, Failure<T>>(new Failure<T>(remainder));
+            return new Result<T, V>(new Failure<T>(remainder));
         }
 
-        public static Either<Success<T>, Failure<T>> Fail<T>(IParseInput<T> remainder)
+        public static Result<T> Fail<T>(IParseInput<T> remainder)
         {
             remainder.OnFail();
-            return new Either<Success<T>, Failure<T>>(new Failure<T>(remainder));
+            return new Result<T>(new Failure<T>(remainder));
         }
 
-        public static Either<Success<T, O>, Failure<T>> MapValue<T, I, O>(
-            this Either<Success<T, I>, Failure<T>> r, Func<I, O> f)
+        public static Result<T, O> MapValue<T, I, O>(
+            this Result<T, I> r, Func<I, O> f)
         {
             return r.Visit(
                 (success) => Match(f(success.Value), success.Remaining),
                 (failure) => Fail<T, O>(failure.Remaining));
         }
 
-        public static Either<Success<T, I>, Failure<T>> MapValue<T, I>(
-            this Either<Success<T, I>, Failure<T>> r)
+        public static Result<T, I> MapValue<T, I>(
+            this Result<T, I> r)
         {
             return r.Visit(
                 (success) => Match(success.Value, success.Remaining),
                 (failure) => Fail<T, I>(failure.Remaining));
         }
 
-        public static Either<Success<T, O>, Failure<T>> MapValue<T, O>(
-            this Either<Success<T>, Failure<T>> r, Func<O> f)
+        public static Result<T, O> MapValue<T, O>(
+            this Result<T> r, Func<O> f)
         {
             return r.Visit(
                 (success) => Match(f(), success.Remaining),

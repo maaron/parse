@@ -53,7 +53,7 @@ namespace Parse
                 return Combinators.Alternate(p, next);
             }
 
-            public static Parser<T, Either<V1, V2>> Or<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> next)
+            public static Parser<T, Variant<V1, V2>> Or<T, V1, V2>(this Parser<T, V1> p, Parser<T, V2> next)
             {
                 return Combinators.Alternate(p, next);
             }
@@ -164,6 +164,16 @@ namespace Parse
             public static Parser<T> Ignored<T, V>(this Parser<T, V> p)
             {
                 return Combinators.Ignore(p);
+            }
+
+            public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> delim)
+            {
+                return delim.And(p).And(delim);
+            }
+
+            public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> left, Parser<T> right)
+            {
+                return left.And(p).And(right);
             }
         }
     }

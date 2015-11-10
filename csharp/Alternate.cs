@@ -41,15 +41,15 @@ namespace Parse
             };
         }
 
-        public static Parser<T, Either<V1, V2>> Alternate<T, V1, V2>(
+        public static Parser<T, Variant<V1, V2>> Alternate<T, V1, V2>(
             Parser<T, V1> left,
             Parser<T, V2> right)
         {
             return (input) =>
             {
                 return left(input).Visit(
-                    (success) => Result.Match(new Either<V1, V2>(success.Value), success.Remaining),
-                    (failure) => right(input).MapValue(v => new Either<V1, V2>(v)));
+                    (success) => Result.Match(new Variant<V1, V2>(success.Value), success.Remaining),
+                    (failure) => right(input).MapValue(v => new Variant<V1, V2>(v)));
             };
         }
 
