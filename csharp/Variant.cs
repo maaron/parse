@@ -4,19 +4,6 @@ using System.Text;
 
 namespace Functional
 {
-    public static class Variant
-    {
-        public static string Generate(int size)
-        {
-            return String.Format(String.Join(Environment.NewLine, new string[]{
-                "using System;",
-                "",
-                "namespace Functional",
-                "{",
-
-            }));
-        }
-    }
     public class Variant<T1, T2>
     {
         Object value;

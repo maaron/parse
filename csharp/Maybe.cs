@@ -24,7 +24,7 @@ namespace Functional
         {
             get
             {
-                if (!IsValid) throw new Exception("Maybe value not valid");
+                if (!IsValid) throw new InvalidOperationException();
                 return value;
             }
             set
