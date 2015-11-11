@@ -62,6 +62,21 @@ namespace Parse
             {
                 return Combinators.Alternate(p, Chars.Const(c));
             }
+
+            public static Parser<char, V> Between<V>(this Parser<char, V> p, char c)
+            {
+                return Extensions.ParserExtensions.Between(p, Chars.Const(c));
+            }
+
+            public static Parser<char, V> Except<V>(this Parser<char, V> p, char c)
+            {
+                return Extensions.ParserExtensions.Except(p, Chars.Const(c));
+            }
+
+            public static Parser<char> Except(this Parser<char> p, char c)
+            {
+                return Extensions.ParserExtensions.Except(p, Chars.Const(c));
+            }
         }
 
         public static class StringParserExtensions

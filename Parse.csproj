@@ -44,6 +44,7 @@
     <Compile Include="Anchor.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
+    <Compile Include="EBNF\Ebnf.cs" />
     <Compile Include="FList.cs" />
     <Compile Include="TransformParser.cs" />
     <Compile Include="Variant.cs" />
