@@ -7,134 +7,165 @@ using Functional;
 
 namespace Parse.EBNF
 {
-    public class IExpr
+    public struct SyntaxRule
     {
-    };
-    public class Identifier : IExpr
-    {
-        public string Name { get; private set; }
-        public Identifier(string name)
-        {
-            Name = name;
-        }
+        public string Name { get; set; }
+        public FList<SingleDefinition> Definitions { get; set; }
     }
-    public class Terminal : IExpr
+    public struct SingleDefinition
     {
-        public string Identifier { get; private set; }
-        public Terminal(string identifier)
-        {
-            Identifier = identifier;
-        }
-    };
-    public class BinaryExpression : IExpr
+        public FList<Term> Terms { get; set; }
+    }
+    public struct Term
     {
-        public IExpr Left { get; private set; }
-        public IExpr Right { get; private set; }
+        public Factor Factor { get; set; }
+        public Maybe<Factor> Exception { get; set; }
+    }
+    public struct Factor
+    {
+        public Maybe<int> Repeat { get; set; }
+        public Primary Primary { get; set; }
+    }
+    public struct Primary
+    {
+        public Variant<
+            PrimaryTerminal,
+            PrimaryNonTerminal> Type { get; set; }
+    }
+    public enum TerminalType { TerminalString, MetaIdentifier, Special }
+    public struct PrimaryTerminal
+    {
+        public TerminalType Type { get; set; }
+        public string Value { get; set; }
+    }
+    public enum NonTerminalType { Grouped, Repeated, Optional }
+    public struct PrimaryNonTerminal
+    {
+        public NonTerminalType Type { get; set; }
+        public FList<SingleDefinition> Definitions { get; set; }
+    }
 
-        public BinaryExpression(IExpr left, IExpr right)
-        {
-            Left = left;
-            Right = right;
-        }
-    }
-    public class UnaryExpression : IExpr
-    {
-        public IExpr Expr { get; private set; }
-
-        public UnaryExpression(IExpr expr)
-        {
-            Expr = expr;
-        }
-    }
-    public class BracketExpr : UnaryExpression
-    {
-        public BracketExpr(IExpr expr) : base(expr)
-        {
-        }
-    };
-    public class ParenExpr : UnaryExpression
-    {
-        public ParenExpr(IExpr expr) : base(expr)
-        {
-        }
-    };
-    public class BraceExpr : UnaryExpression
-    {
-        public BraceExpr(IExpr expr) : base(expr)
-        {
-        }
-    };
-    public class PipeExpr : BinaryExpression
-    {
-        public PipeExpr(IExpr left, IExpr right) 
-            : base(left, right)
-        {
-        }
-    };
-    public class CommaExpr : BinaryExpression
-    {
-        public CommaExpr(IExpr left, IExpr right)
-            : base(left, right)
-        {
-        }
-    };
+    public enum BinaryOp { Sequence, Alternate };
 
     public class Ebnf
     {
-        private static Parser<char, Ebnf> parser;
+        public readonly static Parser<char> letter = Chars.Letter.Ignored();
+        public readonly static Parser<char> digit = Chars.Digit.Ignored();
+        public readonly static Parser<char> character = Chars.Any.Ignored();
+        public readonly static Parser<char, string> meta_identifier;
+        public readonly static Parser<char, string> terminal_string;
+        public readonly static Parser<char, string> special_sequence;
+        public readonly static Parser<char, SyntaxRule> syntax_rule;
+        public readonly static Parser<char, FList<SyntaxRule>> syntax;
+        public readonly static Parser<char, FList<SingleDefinition>> grouped_sequence;
+        public readonly static Parser<char, FList<SingleDefinition>> repeated_sequence;
+        public readonly static Parser<char, FList<SingleDefinition>> optional_sequence;
+        public readonly static Parser<char, FList<SingleDefinition>> definitions_list, definitions_list_def;
+        public readonly static Parser<char, SingleDefinition> single_definition;
+        public readonly static Parser<char, Term> term;
+        public readonly static Parser<char, Factor> factor;
+        public readonly static Parser<char, int> integer = digit.Repeated(1).ReturnString().Return(s => int.Parse(s));
+        public readonly static Parser<char, Primary> primary;
+        public readonly static Parser<char, PrimaryTerminal> primary_terminal;
+        public readonly static Parser<char, PrimaryNonTerminal> primary_nonterminal;
+
+        private static Parser<char, string> Quote(Parser<char> c, char quote)
+        {
+            return c.Except(quote).Repeated().ReturnString().Between(quote);
+        }
 
         static Ebnf()
         {
-            /*
-                letter = "A" | "B" | "C" | "D" | "E" | "F" | "G"
-                       | "H" | "I" | "J" | "K" | "L" | "M" | "N"
-                       | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
-                       | "V" | "W" | "X" | "Y" | "Z" ;
-                digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
-                symbol = "[" | "]" | "{" | "}" | "(" | ")" | "<" | ">"
-                       | "'" | '"' | "=" | "|" | "." | "," | ";" ;
-                character = letter | digit | symbol | "_" ;
- 
-                identifier = letter , { letter | digit | "_" } ;
-                terminal = "'" , character , { character } , "'" 
-                         | '"' , character , { character } , '"' ;
- 
-                lhs = identifier ;
-                rhs = identifier
-                     | terminal
-                     | "[" , rhs , "]"
-                     | "{" , rhs , "}"
-                     | "(" , rhs , ")"
-                     | rhs , "|" , rhs
-                     | rhs , "," , rhs ;
+            var ws = Chars.Space.Ignored().Repeated(0);
+            var lbracket = ws.And(Chars.Const('[')).And(ws);
+            var rbracket = ws.And(Chars.Const(']')).And(ws);
+            var lbrace = ws.And(Chars.Const('{')).And(ws);
+            var rbrace = ws.And(Chars.Const('}')).And(ws);
+            var lparen = ws.And(Chars.Const('(')).And(ws);
+            var rparen = ws.And(Chars.Const(')')).And(ws);
 
-                rule = lhs , "=" , rhs , ";" ;
-                grammar = { rule } ;
-             */
+            optional_sequence = definitions_list.Between(lbracket, rbracket);
 
-            var letter = Chars.Letter.Ignored();
-            var digit = Chars.Digit.Ignored();
-            var symbol = Chars.AnyOf("[]{}()<>'\"=|.,;").Ignored();
-            var character = letter.Or(digit).Or(symbol).Or('_');
-            var identifier = letter.And(letter.Or(digit).Or('_')).ReturnString();
-            var terminal = character.Repeated(1).ReturnString().Between('"');
-            var lhs = identifier;
-            Parser<char, IExpr> rhs = null;
-            Parser<char, IExpr> rhsRef = i => rhs(i);
-            var special = Chars.Any.Except('?').Between('?');
+            repeated_sequence = definitions_list.Between(lbrace, rbrace);
 
-            rhs = identifier.Return(r => new Identifier(r) as IExpr)
-                .OrSame('{'.And(rhsRef).And('}').Return(r => new BraceExpr(r) as IExpr))
-                .OrSame('['.And(rhsRef).And(']').Return(r => new BracketExpr(r) as IExpr))
-                .OrSame('('.And(rhsRef).And(')').Return(r => new ParenExpr(r) as IExpr))
-                .OrSame(rhsRef.And('|').And(rhsRef).Return(r => new PipeExpr(r.Item1, r.Item2) as IExpr))
-                .OrSame(rhsRef.And(',').And(rhsRef).Return(r => new CommaExpr(r.Item1, r.Item2) as IExpr))
-                .OrSame(terminal.Return(r => new Terminal(r) as IExpr));
+            grouped_sequence = definitions_list.Between(lparen, rparen);
 
-            var rule = lhs.And('=').And(rhs).And(';');
-            var grammar = rule.Repeated();
+            terminal_string = Quote(character, '"')
+                .OrSame(Quote(character, '\''));
+
+            meta_identifier = letter.And(letter.Or(digit).Repeated()).ReturnString();
+
+            special_sequence = Quote(character, '?');
+            
+            primary_nonterminal =
+                repeated_sequence.Return(r => new PrimaryNonTerminal()
+                {
+                    Type = NonTerminalType.Repeated,
+                    Definitions = r
+                })
+                .OrSame(optional_sequence.Return(r => new PrimaryNonTerminal()
+                {
+                    Type = NonTerminalType.Optional,
+                    Definitions = r
+                }))
+                .OrSame(grouped_sequence.Return(r => new PrimaryNonTerminal()
+                {
+                    Type = NonTerminalType.Grouped,
+                    Definitions = r
+                }));
+
+            primary_terminal =
+                terminal_string.Return(s => new PrimaryTerminal()
+                {
+                    Type = TerminalType.TerminalString,
+                    Value = s
+                })
+                .OrSame(meta_identifier.Return(s => new PrimaryTerminal()
+                {
+                    Type = TerminalType.MetaIdentifier,
+                    Value = s
+                }))
+                .OrSame(special_sequence.Return(s => new PrimaryTerminal()
+                {
+                    Type = TerminalType.Special,
+                    Value = s
+                }));
+
+            primary = primary_terminal.Or(primary_nonterminal)
+                .Return(r => r.Visit(
+                    terminal => new Primary() { Type = terminal },
+                    nonterminal => new Primary() { Type = nonterminal }));
+
+            factor = Combinators.Optional(integer.And('*')).And(primary)
+                .Return(r => new Factor()
+                {
+                    Repeat = r.Item1,
+                    Primary = r.Item2
+                });
+
+            term = factor.And(Combinators.Optional('-'.And(factor)))
+                .Return(r => new Term()
+                {
+                    Factor = r.Item1,
+                    Exception = r.Item2
+                });
+
+            single_definition = term.SplitBy(Chars.Const(','))
+                .Return(r => new SingleDefinition()
+                {
+                    Terms = r
+                });
+
+            definitions_list = single_definition.SplitBy(Chars.Const('|'));
+
+            syntax_rule = meta_identifier.And('=').And(definitions_list).And(';')
+                .Return(r => new SyntaxRule()
+                {
+                    Name = r.Item1,
+                    Definitions = r.Item2
+                });
+
+            syntax = syntax_rule.Repeated(1);
         }
-
-        public Dictionary<string, IExpr> Productions { get; private set; }
     }
 }

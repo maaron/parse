@@ -493,5 +493,22 @@ namespace UnitTest
 
             Assert.IsTrue(result.Success.Value.Item2.Value == "567");
         }
+
+        [TestMethod]
+        public void Ebnf()
+        {
+            CheckMatch(Parse.EBNF.Ebnf.meta_identifier, "a123qwer");
+            CheckFail(Parse.EBNF.Ebnf.meta_identifier, "123qwer");
+
+            CheckMatch(Parse.EBNF.Ebnf.terminal_string, "\"asdf\"", "asdf");
+            CheckMatch(Parse.EBNF.Ebnf.terminal_string, "'asdf'", "asdf");
+
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "identifier");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "{identifier}");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "[identifier]");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "(identifier)");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "identifier,identifier");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "\"terminal\"");
+        }
     }
 }
