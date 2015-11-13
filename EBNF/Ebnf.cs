@@ -49,9 +49,6 @@ namespace Parse.EBNF
 
     public class Ebnf
     {
-        public readonly static Parser<char> letter = Chars.Letter.Ignored();
-        public readonly static Parser<char> digit = Chars.Digit.Ignored();
-        public readonly static Parser<char> character = Chars.Any.Ignored();
         public readonly static Parser<char, string> meta_identifier;
         public readonly static Parser<char, string> terminal_string;
         public readonly static Parser<char, string> special_sequence;
@@ -60,11 +57,11 @@ namespace Parse.EBNF
         public readonly static Parser<char, FList<SingleDefinition>> grouped_sequence;
         public readonly static Parser<char, FList<SingleDefinition>> repeated_sequence;
         public readonly static Parser<char, FList<SingleDefinition>> optional_sequence;
-        public readonly static Parser<char, FList<SingleDefinition>> definitions_list, definitions_list_def;
+        public readonly static Parser<char, FList<SingleDefinition>> definitions_list_def;
+        public readonly static Parser<char, FList<SingleDefinition>> definitions_list;
         public readonly static Parser<char, SingleDefinition> single_definition;
         public readonly static Parser<char, Term> term;
         public readonly static Parser<char, Factor> factor;
-        public readonly static Parser<char, int> integer = digit.Repeated(1).ReturnString().Return(s => int.Parse(s));
         public readonly static Parser<char, Primary> primary;
         public readonly static Parser<char, PrimaryTerminal> primary_terminal;
         public readonly static Parser<char, PrimaryNonTerminal> primary_nonterminal;
@@ -76,6 +73,9 @@ namespace Parse.EBNF
 
         static Ebnf()
         {
+            var letter = Chars.Letter.Ignored();
+            var digit = Chars.Digit.Ignored();
+            var character = Chars.Any.Ignored();
             var ws = Chars.Space.Ignored().Repeated(0);
             var lbracket = ws.And(Chars.Const('[')).And(ws);
             var rbracket = ws.And(Chars.Const(']')).And(ws);
@@ -83,6 +83,9 @@ namespace Parse.EBNF
             var rbrace = ws.And(Chars.Const('}')).And(ws);
             var lparen = ws.And(Chars.Const('(')).And(ws);
             var rparen = ws.And(Chars.Const(')')).And(ws);
+            var integer = digit.Repeated(1).ReturnString().Return(s => int.Parse(s));
+
+            definitions_list = i => definitions_list_def(i);
 
             optional_sequence = definitions_list.Between(lbracket, rbracket);
 
@@ -156,7 +159,7 @@ namespace Parse.EBNF
                     Terms = r
                 });
 
-            definitions_list = single_definition.SplitBy(Chars.Const('|'));
+            definitions_list_def = single_definition.SplitBy(Chars.Const('|'));
 
             syntax_rule = meta_identifier.And('=').And(definitions_list).And(';')
                 .Return(r => new SyntaxRule()
