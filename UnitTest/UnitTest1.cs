@@ -293,7 +293,7 @@ namespace UnitTest
         public void Recursive()
         {
             // Lisp-style lists
-            var token = Chars.Letter.Repeat(1).ReturnString();
+            var token = Chars.Letter.AtLeastMany(1).ReturnString();
 
             var ws = Chars.Space.Ignored().ZeroOrMore();
 
@@ -375,7 +375,7 @@ namespace UnitTest
         public void FilterParser()
         {
             List<int> numbers = new List<int>();
-            var number = Chars.Digit.Repeat(1).Return(l => int.Parse(new string(l.ToArray())));
+            var number = Chars.Digit.AtLeastMany(1).Return(l => int.Parse(new string(l.ToArray())));
             IParseInput<char> filter = new FilterParser<char>(
                 new ParseInput<char>("1a12b123c1234d"), 
                 number.OnMatch(
@@ -394,7 +394,7 @@ namespace UnitTest
         [TestMethod]
         public void Repeated()
         {
-            var number = Chars.Digit.Repeat(1).Return(l => int.Parse(new string(l.ToArray())));
+            var number = Chars.Digit.AtLeastMany(1).Return(l => int.Parse(new string(l.ToArray())));
             CheckMatch(number, "123", 123);
             CheckFail(number, "");
         }
@@ -439,7 +439,7 @@ namespace UnitTest
         [TestMethod]
         public void TransformParser()
         {
-            var parser = Chars.Letter.Repeat(1).ReturnString().And(' ');
+            var parser = Chars.Letter.AtLeastMany(1).ReturnString().And(' ');
 
             var input = new ParseInput<char>("asdf qwer zxcv ");
             IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
@@ -472,7 +472,7 @@ namespace UnitTest
         public void Anchored()
         {
             var input = new ParseInput<char>("1234 567");
-            var num = Chars.Digit.Ignored().Repeat(1).ReturnString().Anchored();
+            var num = Chars.Digit.Ignored().AtLeastMany(1).ReturnString().Anchored();
             var parser = num.And(' ').And(num);
             var result = parser(input);
             
