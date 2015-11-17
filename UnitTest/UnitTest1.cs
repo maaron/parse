@@ -263,31 +263,20 @@ namespace UnitTest
             public Expr(params Variant<Expr, string>[] list)
             {
                 items = list.ToList();
-                }
+            }
 
             public override bool Equals(object obj)
             {
                 var e = obj as Expr;
-                return obj != null
-                    && obj is Expr
-                    && items.SequenceEqual(e.items);
+                return e != null
+                    && items.Equals(e.items);
             }
 
             public override int GetHashCode()
             {
-                return items.Aggregate(0, (x, y) => x ^ y.GetHashCode());
+                return items.GetHashCode();
             }
         };
-
-        public class Ref<T>
-        {
-            public T Value { get; private set; }
-
-            public Ref(T value)
-            {
-                Value = value;
-            }
-        }
 
         [TestMethod]
         public void Recursive()
@@ -308,8 +297,8 @@ namespace UnitTest
                 .And('(')
                 .And(ws.And(exprRef.Or(token)).ZeroOrMore())
                 .And(ws)
-                .And(')').Return(
-                    e => new Expr() { items = e });
+                .And(')')
+                .Return(e => new Expr() { items = e });
 
             CheckMatch(expr, "()", new Expr());
 
