@@ -295,7 +295,7 @@ namespace UnitTest
             Parser<char, Expr> exprRef = (i) => expr(i);
             expr = ws
                 .And('(')
-                .And(ws.And(exprRef.Or(token)).ZeroOrMore())
+                .And(exprRef.Or(ws.And(token)).ZeroOrMore())
                 .And(ws)
                 .And(')')
                 .Return(e => new Expr() { items = e });
