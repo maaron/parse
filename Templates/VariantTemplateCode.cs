@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Parse
+namespace Templates
 {
     public partial class VariantTemplate
     {
@@ -29,7 +29,7 @@ namespace Parse
             get
             {
                 return String.Join(",",
-                    Indeces.Select(i => String.Format("Func<T{0}, T> f{0}", i)));
+                    Indeces.Select(i => String.Format("System.Func<T{0}, T> f{0}", i)));
             }
         }
 
@@ -38,7 +38,7 @@ namespace Parse
             get
             {
                 return String.Join(",",
-                    Indeces.Select(i => String.Format("Action<T{0}> f{0}", i)));
+                    Indeces.Select(i => String.Format("System.Action<T{0}> f{0}", i)));
             }
         }
 

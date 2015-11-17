@@ -3,4 +3,11 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Templates" #>
+<#@ assembly name="$(SolutionDir)\Templates\bin\$(Configuration)\Templates.dll" #>
 <#@ output extension=".cs" #>
+
+<# for (int i = 2; i <= 8; i++) { #>
+<#= new Templates.VariantTemplate(i).TransformText() #>
+
+<# } #>

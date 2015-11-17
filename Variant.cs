@@ -6,9 +6,21 @@ namespace Functional
 {
     public class Variant
     {
-        internal Object value;
-    }
+        protected Object value;
 
+        protected Variant(Object v)
+        {
+            value = v;
+        }
+
+        protected Variant(Variant other)
+        {
+            value = other.value;
+        }
+    }
+}
+
+#if false
     public class Variant<T1, T2> : Variant
     {
         public T1 Item0 { get { return (T1)value; } }
@@ -27,20 +39,11 @@ namespace Functional
             return new Variant<T1, T2>(t);
         }
 
-        public Variant(T1 t)
-        {
-            this.value = t;
-        }
+        public Variant(T1 t) : base(t) { }
 
-        public Variant(T2 t)
-        {
-            this.value = t;
-        }
+        public Variant(T2 t) : base(t) { }
 
-        public Variant(Variant v)
-        {
-            value = v.value;
-        }
+        public Variant(Variant v) : base(v) { }
 
         public T Visit<T>(Func<T1, T> f0, Func<T2, T> f1)
         {
@@ -94,25 +97,13 @@ namespace Functional
             return new Variant<T1, T2, T3>(t);
         }
 
-        public Variant(T1 t)
-        {
-            this.value = t;
-        }
+        public Variant(T1 t) : base(t) { }
 
-        public Variant(T2 t)
-        {
-            this.value = t;
-        }
+        public Variant(T2 t) : base(t) { }
 
-        public Variant(T3 t)
-        {
-            this.value = t;
-        }
+        public Variant(T3 t) : base(t) { }
 
-        public Variant(Variant v)
-        {
-            value = v.value;
-        }
+        public Variant(Variant v) : base(v) { }
 
         public T Visit<T>(
             Func<T1, T> f1, 
@@ -149,3 +140,4 @@ namespace Functional
         }
     }
 }
+#endif

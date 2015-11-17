@@ -94,8 +94,8 @@ namespace UnitTest
                 new Variant<char, int>('a'),
                 new Variant<char, int>(1)));
 
-            Assert.IsTrue(SameEither<int, int>(1).IsItem0);
             Assert.IsTrue(SameEither<int, int>(1).IsItem1);
+            Assert.IsTrue(SameEither<int, int>(1).IsItem2);
         }
 
         [TestMethod]
@@ -403,11 +403,11 @@ namespace UnitTest
         public void VariantTemplate()
         {
             // Generate and compile code for a Variant(T0, T1, T2, T3) class
-            var templ = new VariantTemplate(4);
+            var templ = new Templates.VariantTemplate(4);
             var code = templ.TransformText();
             var p = new Microsoft.CSharp.CSharpCodeProvider();
             var compiled = p.CompileAssemblyFromSource(
-                new System.CodeDom.Compiler.CompilerParameters(),
+                new System.CodeDom.Compiler.CompilerParameters(new[] { "Parse.dll" }),
                 code);
 
             Assert.IsTrue(compiled.Errors.Count == 0);
