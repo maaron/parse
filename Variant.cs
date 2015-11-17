@@ -4,10 +4,13 @@ using System.Text;
 
 namespace Functional
 {
-    public class Variant<T1, T2>
+    public class Variant
     {
-        Object value;
+        internal Object value;
+    }
 
+    public class Variant<T1, T2> : Variant
+    {
         public T1 Item0 { get { return (T1)value; } }
         public T2 Item1 { get { return (T2)value; } }
 
@@ -32,6 +35,11 @@ namespace Functional
         public Variant(T2 t)
         {
             this.value = t;
+        }
+
+        public Variant(Variant v)
+        {
+            value = v.value;
         }
 
         public T Visit<T>(Func<T1, T> f0, Func<T2, T> f1)
@@ -61,10 +69,8 @@ namespace Functional
         }
     }
 
-    public class Variant<T1, T2, T3>
+    public class Variant<T1, T2, T3> : Variant
     {
-        Object value;
-
         public T1 Item1 { get { return (T1)value; } }
         public T2 Item2 { get { return (T2)value; } }
         public T3 Item3 { get { return (T3)value; } }
@@ -101,6 +107,11 @@ namespace Functional
         public Variant(T3 t)
         {
             this.value = t;
+        }
+
+        public Variant(Variant v)
+        {
+            value = v.value;
         }
 
         public T Visit<T>(

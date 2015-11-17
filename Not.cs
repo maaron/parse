@@ -1,9 +1,9 @@
 ﻿
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
-        public static Parser<T> Not<T, V>(Parser<T, V> parser)
+        public static Parser<T> Not<T, V>(this Parser<T, V> parser)
         {
             return (input) =>
             {
@@ -13,7 +13,7 @@ namespace Parse
             };
         }
 
-        public static Parser<T> Not<T>(Parser<T> parser)
+        public static Parser<T> Not<T>(this Parser<T> parser)
         {
             return (input) =>
             {

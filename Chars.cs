@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Parse.Extensions;
+using Parse.Combinators;
 using Parse.InputExtensions;
 
 namespace Parse
 {
-    namespace Character
+    namespace CharCombinators
     {
         public class Chars
         {

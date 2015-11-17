@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Parse.Extensions;
-using Parse.Character;
+using Parse.Combinators;
+using Parse.CharCombinators;
 using Functional;
 
 namespace Parse.EBNF
@@ -68,7 +68,7 @@ namespace Parse.EBNF
 
         private static Parser<char, string> Quote(Parser<char> c, char quote)
         {
-            return c.Except(quote).Repeated().ReturnString().Between(quote);
+            return c.Except(quote).ZeroOrMore().ReturnString().Between(quote);
         }
 
         static Ebnf()
@@ -76,14 +76,14 @@ namespace Parse.EBNF
             var letter = Chars.Letter.Ignored();
             var digit = Chars.Digit.Ignored();
             var character = Chars.Any.Ignored();
-            var ws = Chars.Space.Ignored().Repeated(0);
+            var ws = Chars.Space.Ignored().ZeroOrMore();
             var lbracket = ws.And(Chars.Const('[')).And(ws);
             var rbracket = ws.And(Chars.Const(']')).And(ws);
             var lbrace = ws.And(Chars.Const('{')).And(ws);
             var rbrace = ws.And(Chars.Const('}')).And(ws);
             var lparen = ws.And(Chars.Const('(')).And(ws);
             var rparen = ws.And(Chars.Const(')')).And(ws);
-            var integer = digit.Repeated(1).ReturnString().Return(s => int.Parse(s));
+            var integer = digit.Repeat(1).ReturnString().Return(s => int.Parse(s));
 
             definitions_list = i => definitions_list_def(i);
 
@@ -96,7 +96,7 @@ namespace Parse.EBNF
             terminal_string = Quote(character, '"')
                 .OrSame(Quote(character, '\''));
 
-            meta_identifier = letter.And(letter.Or(digit).Repeated()).ReturnString();
+            meta_identifier = letter.And(letter.Or(digit).ZeroOrMore()).ReturnString();
 
             special_sequence = Quote(character, '?');
             
@@ -139,14 +139,14 @@ namespace Parse.EBNF
                     terminal => new Primary() { Type = terminal },
                     nonterminal => new Primary() { Type = nonterminal }));
 
-            factor = Combinators.Optional(integer.And('*')).And(primary)
+            factor = integer.And('*').Optional().And(primary)
                 .Return(r => new Factor()
                 {
                     Repeat = r.Item1,
                     Primary = r.Item2
                 });
 
-            term = factor.And(Combinators.Optional('-'.And(factor)))
+            term = factor.And('-'.And(factor).Optional())
                 .Return(r => new Term()
                 {
                     Factor = r.Item1,
@@ -168,7 +168,7 @@ namespace Parse.EBNF
                     Definitions = r.Item2
                 });
 
-            syntax = syntax_rule.Repeated(1);
+            syntax = syntax_rule.Repeat(1);
         }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using System;
-using Functional;
-using Parse.Extensions;
 
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
-        public static Parser<T, V> ParseAction<T, V>(
-            Parser<T, V> parser,
+        public static Parser<T, V> OnParse<T, V>(
+            this Parser<T, V> parser,
             Action<Result<T, V>> action)
         {
             return (input) =>
@@ -18,8 +16,8 @@ namespace Parse
             };
         }
 
-        public static Parser<T, V> MatchAction<T, V>(
-            Parser<T, V> parser,
+        public static Parser<T, V> OnMatch<T, V>(
+            this Parser<T, V> parser,
             Action<V> action)
         {
             return parser.Return(v =>
@@ -29,8 +27,8 @@ namespace Parse
                 });
         }
 
-        public static Parser<T, V> MatchAction<T, V>(
-            Parser<T, V> parser,
+        public static Parser<T, V> OnMatch<T, V>(
+            this Parser<T, V> parser,
             Action<V, IParseInput<T>> action)
         {
             return (input) =>
@@ -45,8 +43,8 @@ namespace Parse
             };
         }
 
-        public static Parser<T, V> FailAction<T, V>(
-            Parser<T, V> parser,
+        public static Parser<T, V> OnFail<T, V>(
+            this Parser<T, V> parser,
             Action action)
         {
             return (input) =>

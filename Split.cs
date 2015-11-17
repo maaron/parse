@@ -1,27 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using Functional;
-using Parse.Extensions;
+using Parse.Combinators;
 
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
-        public static Parser<T, FList<V>> Split<T, V>(
-            Parser<T, V> parser,
+        public static Parser<T, FList<V>> SplitBy<T, V>(
+            this Parser<T, V> parser,
             Parser<T> delimiter)
         {
-            return parser.And(delimiter.And(parser).Repeated()).Return(t =>
+            return parser.And(delimiter.And(parser).ZeroOrMore()).Return(t =>
             {
                 t.Item2.Insert(0, t.Item1); return t.Item2;
             });
         }
 
-        public static Parser<T, FList<V1>> Split<T, V1, V2>(
-            Parser<T, V1> parser,
+        public static Parser<T, FList<V1>> SplitBy<T, V1, V2>(
+            this Parser<T, V1> parser,
             Parser<T, V2> delimiter)
         {
-            return Split(parser, Ignore(delimiter));
+            return SplitBy(parser, delimiter.Ignored());
         }
     }
 }

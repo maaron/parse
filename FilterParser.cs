@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Parse.Extensions;
+using Parse.Combinators;
 
 namespace Parse
 {
@@ -12,7 +12,7 @@ namespace Parse
             : base(input)
         {
             this.Parser = parser;
-            adapted = Parser.Repeated()(adapted).Visit(
+            adapted = Parser.ZeroOrMore()(adapted).Visit(
                 (success) => success.Remaining,
                 (failure) => failure.Remaining);
         }

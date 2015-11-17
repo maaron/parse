@@ -40,12 +40,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Abnf\Abnf.cs" />
     <Compile Include="Alternate.cs" />
     <Compile Include="Anchor.cs" />
+    <Compile Include="Between.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
     <Compile Include="EBNF\Ebnf.cs" />
+    <Compile Include="Except.cs" />
+    <Compile Include="Return.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="FList.cs" />
     <Compile Include="Linq.cs" />
@@ -65,7 +67,6 @@
     <Compile Include="Optional.cs" />
     <Compile Include="Parse.cs" />
     <Compile Include="ParseInput.cs" />
-    <Compile Include="ParserExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repeated.cs" />
     <Compile Include="Result.cs" />
@@ -102,6 +103,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Variant1.cs</LastGenOutput>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Abnf\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

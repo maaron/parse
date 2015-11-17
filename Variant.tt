@@ -4,6 +4,3 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
-<# for (int i = 1; i <= 8; i++) { #>
-<#= new Functional.VariantTemplate(i).TransformText() #>
-<# } #>

@@ -1,36 +1,36 @@
 ﻿using System;
 using Functional;
 
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
-        public static Parser<T, Tuple<V1, V2, V3>> Sequence<T, V1, V2, V3>(
-                Parser<T, Tuple<V1, V2>> left,
-                Parser<T, V3> right)
+        public static Parser<T, Tuple<V1, V2, V3>> And<T, V1, V2, V3>(
+            this Parser<T, Tuple<V1, V2>> left,
+            Parser<T, V3> right)
         {
-            return Sequence(left, right,
+            return And(left, right,
                 (l, r) => Tuple.Create(l.Item1, l.Item2, r));
         }
 
-        public static Parser<T, Tuple<V1, V2, V3>> Sequence<T, V1, V2, V3>(
-            Parser<T, V1> left,
+        public static Parser<T, Tuple<V1, V2, V3>> And<T, V1, V2, V3>(
+            this Parser<T, V1> left,
             Parser<T, Tuple<V2, V3>> right)
         {
-            return Sequence(left, right,
+            return And(left, right,
                 (l, r) => Tuple.Create(l, r.Item1, r.Item2));
         }
 
-        public static Parser<T, Tuple<V1, V2>> Sequence<T, V1, V2>(
-            Parser<T, V1> left,
+        public static Parser<T, Tuple<V1, V2>> And<T, V1, V2>(
+            this Parser<T, V1> left,
             Parser<T, V2> right)
         {
-            return Sequence(left, right,
+            return And(left, right,
                 (l, r) => Tuple.Create(l, r));
         }
 
-        public static Parser<T, V> Sequence<T, V>(
-            Parser<T> left,
+        public static Parser<T, V> And<T, V>(
+            this Parser<T> left,
             Parser<T, V> right)
         {
             return (input) =>
@@ -41,8 +41,8 @@ namespace Parse
             };
         }
 
-        public static Parser<T, V> Sequence<T, V>(
-            Parser<T, V> left,
+        public static Parser<T, V> And<T, V>(
+            this Parser<T, V> left,
             Parser<T> right)
         {
             return (input) =>
@@ -53,8 +53,8 @@ namespace Parse
             };
         }
 
-        public static Parser<T> Sequence<T>(
-            Parser<T> left,
+        public static Parser<T> And<T>(
+            this Parser<T> left,
             Parser<T> right)
         {
             return (input) =>
@@ -68,8 +68,8 @@ namespace Parse
         // Used for Sequence chains whose result types have two or more 
         // values.  Function f returns the desired value by combining values 
         // from left and right parsers.
-        public static Parser<T, R> Sequence<T, V1, V2, R>(
-            Parser<T, V1> left,
+        public static Parser<T, R> And<T, V1, V2, R>(
+            this Parser<T, V1> left,
             Parser<T, V2> right,
             Func<V1, V2, R> f)
         {
