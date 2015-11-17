@@ -46,7 +46,6 @@
     <Compile Include="Chars.cs" />
     <Compile Include="EBNF\Ebnf.cs" />
     <Compile Include="Util.cs" />
-    <Compile Include="FieldSequence.cs" />
     <Compile Include="FList.cs" />
     <Compile Include="Linq.cs" />
     <Compile Include="TextTemplate1.cs">
