@@ -45,7 +45,15 @@
     <Compile Include="Anchor.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
+    <Compile Include="EBNF\Ebnf.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="FList.cs" />
+    <Compile Include="Linq.cs" />
+    <Compile Include="TextTemplate1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TextTemplate1.tt</DependentUpon>
+    </Compile>
     <Compile Include="TransformParser.cs" />
     <Compile Include="Variant.cs" />
     <Compile Include="FilterParser.cs" />
@@ -80,6 +88,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+    <None Include="TextTemplate1.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TextTemplate1.cs</LastGenOutput>
+    </None>
     <None Include="VariantTemplate.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>VariantTemplate.cs</LastGenOutput>

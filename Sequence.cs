@@ -9,7 +9,7 @@ namespace Parse
                 Parser<T, Tuple<V1, V2>> left,
                 Parser<T, V3> right)
         {
-            return SequenceImpl(left, right,
+            return Sequence(left, right,
                 (l, r) => Tuple.Create(l.Item1, l.Item2, r));
         }
 
@@ -17,7 +17,7 @@ namespace Parse
             Parser<T, V1> left,
             Parser<T, Tuple<V2, V3>> right)
         {
-            return SequenceImpl(left, right,
+            return Sequence(left, right,
                 (l, r) => Tuple.Create(l, r.Item1, r.Item2));
         }
 
@@ -25,7 +25,7 @@ namespace Parse
             Parser<T, V1> left,
             Parser<T, V2> right)
         {
-            return SequenceImpl(left, right,
+            return Sequence(left, right,
                 (l, r) => Tuple.Create(l, r));
         }
 
@@ -68,16 +68,16 @@ namespace Parse
         // Used for Sequence chains whose result types have two or more 
         // values.  Function f returns the desired value by combining values 
         // from left and right parsers.
-        private static Parser<T, V3> SequenceImpl<T, V1, V2, V3>(
+        public static Parser<T, R> Sequence<T, V1, V2, R>(
             Parser<T, V1> left,
             Parser<T, V2> right,
-            Func<V1, V2, V3> f)
+            Func<V1, V2, R> f)
         {
             return (input) =>
             {
                 return left(input).Visit(
                     (success) => right(success.Remaining).MapValue(r => f(success.Value, r)),
-                    (failure) => Result.Fail<T, V3>(input));
+                    (failure) => Result.Fail<T, R>(input));
             };
         }
     }

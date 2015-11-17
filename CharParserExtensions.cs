@@ -21,7 +21,7 @@ namespace Parse
             public static Parser<char, int> ReturnInt(this Parser<char> p)
             {
                 return Chars.String(p).Return(s => int.Parse(s));
-            }
+        }
 
             public static Parser<char, int> ReturnInt<V>(this Parser<char, V> p)
             {

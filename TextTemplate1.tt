@@ -1,0 +1,77 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+<#
+var Indeces = new[]{1, 2};
+string TypeList = String.Join(",", Indeces.Select(i => "T" + i));
+string VisitFuncParams = String.Join(",", Indeces.Select(i => String.Format("Func<T{0}, T> f{0}", i)));
+var VisitActionParams = String.Join(",", Indeces.Select(i => String.Format("Action<T{0}> f{0}", i)));
+int Count = Indeces.Length;
+#>
+
+using System;
+using System.Text;
+
+namespace FunctionalTest
+{
+    public class Variant<<#= TypeList #>>
+    {
+        Object value;
+
+<# foreach (var i in Indeces) { #>
+        public T<#= i #> Item<#= i #> { get { return (T<#= i #>)value; } }
+<# } #>
+
+<# foreach (var i in Indeces) { #>
+        public bool IsItem<#= i #> { get { return value is T<#= i #>; } }
+<# } #>
+
+<# foreach (var i in Indeces) { #>
+        public static implicit operator Variant<<#= TypeList #>>(T<#= i #> t)
+        {
+            return new Variant<<#= TypeList #>>(t);
+        }
+<# } #>
+
+<# foreach (var i in Indeces) { #>
+        public Variant(T<#= i #> t)
+        {
+            this.value = t;
+        }
+<# } #>
+
+        public T Visit<T>(<#= VisitFuncParams #>)
+        {
+<# foreach (var i in Enumerable.Range(1, Count - 1)) { #>
+            if (value is T<#= i #>) return f<#= i #>(this.Item<#= i #>);
+<# } #>
+            else return f<#= Count #>(this.Item<#= Count #>);
+        }
+
+        public void Visit(<#= VisitActionParams #>)
+        {
+<# foreach (var i in Enumerable.Range(1, Count - 1)) { #>
+            if (value is T<#= i #>) f<#= i #>(this.Item<#= i #>);
+<# } #>
+            else f<#= Count #>(this.Item<#= Count #>);
+        }
+
+        public override bool Equals(object other)
+        {
+            var e = other as Variant<<#= TypeList #>>;
+
+            return
+                e != null &&
+                value.Equals(e.value);
+        }
+
+        public override int GetHashCode()
+        {
+            return value.GetHashCode();
+        }
+    }
+}

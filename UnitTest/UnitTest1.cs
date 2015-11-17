@@ -10,6 +10,7 @@ using Parse.Extensions;
 using Parse.InputExtensions;
 using Parse.Character;
 using Functional;
+using Parse.Linq;
 
 namespace UnitTest
 {
@@ -492,6 +493,36 @@ namespace UnitTest
                 input.Next().Next().Next().Next().Next().Next().Next().Next()) == 0);
 
             Assert.IsTrue(result.Success.Value.Item2.Value == "567");
+        }
+
+        [TestMethod]
+        public void Ebnf()
+        {
+            CheckMatch(Parse.EBNF.Ebnf.meta_identifier, "a123qwer");
+            CheckFail(Parse.EBNF.Ebnf.meta_identifier, "123qwer");
+
+            CheckMatch(Parse.EBNF.Ebnf.terminal_string, "\"asdf\"", "asdf");
+            CheckMatch(Parse.EBNF.Ebnf.terminal_string, "'asdf'", "asdf");
+
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "identifier");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "{identifier}");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "[identifier]");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "(identifier)");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "identifier,identifier");
+            CheckMatch(Parse.EBNF.Ebnf.single_definition, "\"terminal\"");
+        }
+
+        [TestMethod]
+        public void Linq()
+        {
+            Parser<char, char> p1 = Chars.Any;
+            Parser<char, char> p2 = Chars.Any;
+            Parser<char, char> p3 = Chars.Any;
+
+            var combined = from r1 in p1 //where r1 != 'a' 
+                           from r2 in p2 //where r2 != 'b'
+                           //from r3 in p3 where r3 != 'c'
+                           select new { first = r1, second = r2 };
         }
     }
 }
