@@ -1,4 +1,5 @@
 ﻿using System;
+using Parse.Extensions;
 using Functional;
 
 namespace Parse
@@ -15,6 +16,16 @@ namespace Parse
             public static Parser<char, string> ReturnString<V>(this Parser<char, V> p)
             {
                 return Chars.String(p);
+            }
+
+            public static Parser<char, int> ReturnInt(this Parser<char> p)
+            {
+                return Chars.String(p).Return(s => int.Parse(s));
+            }
+
+            public static Parser<char, int> ReturnInt<V>(this Parser<char, V> p)
+            {
+                return Chars.String(p).Return(s => int.Parse(s));
             }
         }
 
@@ -61,6 +72,48 @@ namespace Parse
             public static Parser<char> Or(this Parser<char> p, char c)
             {
                 return Combinators.Alternate(p, Chars.Const(c));
+            }
+
+            public static Parser<char, V> Except<V>(this Parser<char, V> p, char c)
+            {
+                return (input) =>
+                    input.Current == c ? Result.Fail<char, V>(input)
+                        : p(input);
+            }
+
+            public static Parser<char> Except(this Parser<char> p, char c)
+            {
+                return (input) => 
+                    input.Current == c ? Result.Fail(input)
+                        : p(input);
+            }
+
+            public static Parser<char> Between(this Parser<char> p, char c)
+            {
+                return Combinators.Sequence(Chars.Const(c),
+                    Combinators.Sequence(p,
+                    Chars.Const(c)));
+            }
+
+            public static Parser<char, V> Between<V>(this Parser<char, V> p, char c)
+            {
+                return Combinators.Sequence(Chars.Const(c), 
+                    Combinators.Sequence(p, 
+                    Chars.Const(c)));
+            }
+
+            public static Parser<char> Between(this Parser<char> p, char c1, char c2)
+            {
+                return Combinators.Sequence(Chars.Const(c1),
+                    Combinators.Sequence(p,
+                    Chars.Const(c2)));
+            }
+
+            public static Parser<char, V> Between<V>(this Parser<char, V> p, char c1, char c2)
+            {
+                return Combinators.Sequence(Chars.Const(c1),
+                    Combinators.Sequence(p,
+                    Chars.Const(c2)));
             }
         }
 

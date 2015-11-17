@@ -58,6 +58,11 @@ namespace Parse
                 return Combinators.Alternate(p, next);
             }
 
+            public static Parser<T, Variant<V1, V2, V3>> Or<T, V1, V2, V3>(this Parser<T, Variant<V1, V2>> p, Parser<T, V3> next)
+            {
+                return Combinators.Alternate(p, next);
+            }
+
             // This is a special case of alternation where both parsers return 
             // the same value type.  With normal Or(), you'd still wind up with 
             // an Variant<T, T>.  OrSame, on the other hand, coalesces 
@@ -165,9 +170,19 @@ namespace Parse
                 return Combinators.Ignore(p);
             }
 
+            public static Parser<T> Between<T>(this Parser<T> p, Parser<T> delim)
+            {
+                return delim.And(p).And(delim);
+            }
+
             public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> delim)
             {
                 return delim.And(p).And(delim);
+            }
+
+            public static Parser<T> Between<T>(this Parser<T> p, Parser<T> left, Parser<T> right)
+            {
+                return left.And(p).And(right);
             }
 
             public static Parser<T, V> Between<T, V>(this Parser<T, V> p, Parser<T> left, Parser<T> right)

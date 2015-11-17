@@ -53,6 +53,18 @@ namespace Parse
             };
         }
 
+        public static Parser<T, Variant<V1, V2, V3>> Alternate<T, V1, V2, V3>(
+            Parser<T, Variant<V1, V2>> left,
+            Parser<T, V3> right)
+        {
+            return (input) =>
+            {
+                return left(input).Visit(
+                    (success) => Result.Match(success.Value.AddType<V3>(), success.Remaining),
+                    (failure) => right(input).MapValue(v => new Variant<V1, V2, V3>(v)));
+            };
+        }
+
         public static Parser<T, V> AlternateSame<T, V>(
             Parser<T, V> left,
             Parser<T, V> right)
