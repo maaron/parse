@@ -6,9 +6,9 @@ using Microsoft.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Parse;
-using Parse.Extensions;
+using Parse.Combinators;
 using Parse.InputExtensions;
-using Parse.Character;
+using Parse.CharCombinators;
 using Functional;
 using Parse.Linq;
 
@@ -94,8 +94,8 @@ namespace UnitTest
                 new Variant<char, int>('a'),
                 new Variant<char, int>(1)));
 
-            Assert.IsTrue(SameEither<int, int>(1).IsItem0);
             Assert.IsTrue(SameEither<int, int>(1).IsItem1);
+            Assert.IsTrue(SameEither<int, int>(1).IsItem2);
         }
 
         [TestMethod]
@@ -130,7 +130,7 @@ namespace UnitTest
         [TestMethod]
         public void AlternateSameValueType()
         {
-            var two = Chars.Letter.OrSame(Chars.Digit);
+            var two = Combinator.AnyOf(Chars.Letter, Chars.Digit);
 
             CheckMatch(two, "a", 'a');
         }
@@ -140,7 +140,7 @@ namespace UnitTest
         {
             var digit = Chars.Digit;
             var letter = Chars.Letter;
-            var split = Combinators.Split(digit, letter);
+            var split = digit.SplitBy(letter);
             CheckMatch(split, "1a2b3c4d5", FList.Create('1', '2', '3', '4', '5'));
 
             var splitBy = digit.SplitBy(letter);
@@ -153,7 +153,7 @@ namespace UnitTest
             var comma = Chars.Const(',');
             var crlf = "\r\n".Or('\r').Or('\n');
             var c = Chars.Any.Except(comma.Or(crlf));
-            var field = c.Repeated().Return(l => new String(l.ToArray()));
+            var field = c.ZeroOrMore().Return(l => new String(l.ToArray()));
             var line = field.SplitBy(comma);
             var lines = line.SplitBy(crlf);
 
@@ -184,7 +184,7 @@ namespace UnitTest
             var nonescaped = Chars.Any.Except(escaped);
             var term = nonescaped.If(c => c == '"');
             var mapped = escaped.OrSame(Chars.Any);
-            var str = '"'.And(mapped.Except(term).Repeated()).And('"')
+            var str = '"'.And(mapped.Except(term).ZeroOrMore()).And('"')
                 .Return(l => new String(l.ToArray()));
 
             CheckMatch(str, "\"asdf\"", "asdf");
@@ -263,39 +263,28 @@ namespace UnitTest
             public Expr(params Variant<Expr, string>[] list)
             {
                 items = list.ToList();
-                }
+            }
 
             public override bool Equals(object obj)
             {
                 var e = obj as Expr;
-                return obj != null
-                    && obj is Expr
-                    && items.SequenceEqual(e.items);
+                return e != null
+                    && items.Equals(e.items);
             }
 
             public override int GetHashCode()
             {
-                return items.Aggregate(0, (x, y) => x ^ y.GetHashCode());
+                return items.GetHashCode();
             }
         };
-
-        public class Ref<T>
-        {
-            public T Value { get; private set; }
-
-            public Ref(T value)
-            {
-                Value = value;
-            }
-        }
 
         [TestMethod]
         public void Recursive()
         {
             // Lisp-style lists
-            var token = Chars.Letter.Repeated(1).ReturnString();
+            var token = Chars.Letter.AtLeastMany(1).ReturnString();
 
-            var ws = Chars.Space.Ignored().Repeated();
+            var ws = Chars.Space.Ignored().ZeroOrMore();
 
             // This is a little "delayed-binding" trick in order to get a 
             // recursive parser.  An alternative is to use a normal function
@@ -306,10 +295,10 @@ namespace UnitTest
             Parser<char, Expr> exprRef = (i) => expr(i);
             expr = ws
                 .And('(')
-                .And(ws.And(exprRef.Or(token)).Repeated())
+                .And(exprRef.Or(ws.And(token)).ZeroOrMore())
                 .And(ws)
-                .And(')').Return(
-                    e => new Expr() { items = e });
+                .And(')')
+                .Return(e => new Expr() { items = e });
 
             CheckMatch(expr, "()", new Expr());
 
@@ -375,7 +364,7 @@ namespace UnitTest
         public void FilterParser()
         {
             List<int> numbers = new List<int>();
-            var number = Chars.Digit.Repeated(1).Return(l => int.Parse(new string(l.ToArray())));
+            var number = Chars.Digit.AtLeastMany(1).Return(l => int.Parse(new string(l.ToArray())));
             IParseInput<char> filter = new FilterParser<char>(
                 new ParseInput<char>("1a12b123c1234d"), 
                 number.OnMatch(
@@ -394,7 +383,7 @@ namespace UnitTest
         [TestMethod]
         public void Repeated()
         {
-            var number = Chars.Digit.Repeated(1).Return(l => int.Parse(new string(l.ToArray())));
+            var number = Chars.Digit.AtLeastMany(1).Return(l => int.Parse(new string(l.ToArray())));
             CheckMatch(number, "123", 123);
             CheckFail(number, "");
         }
@@ -403,11 +392,11 @@ namespace UnitTest
         public void VariantTemplate()
         {
             // Generate and compile code for a Variant(T0, T1, T2, T3) class
-            var templ = new VariantTemplate(4);
+            var templ = new Templates.VariantTemplate(4);
             var code = templ.TransformText();
             var p = new Microsoft.CSharp.CSharpCodeProvider();
             var compiled = p.CompileAssemblyFromSource(
-                new System.CodeDom.Compiler.CompilerParameters(),
+                new System.CodeDom.Compiler.CompilerParameters(new[] { "Parse.dll" }),
                 code);
 
             Assert.IsTrue(compiled.Errors.Count == 0);
@@ -439,7 +428,7 @@ namespace UnitTest
         [TestMethod]
         public void TransformParser()
         {
-            var parser = Chars.Letter.Repeated(1).ReturnString().And(' ');
+            var parser = Chars.Letter.AtLeastMany(1).ReturnString().And(' ');
 
             var input = new ParseInput<char>("asdf qwer zxcv ");
             IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
@@ -472,7 +461,7 @@ namespace UnitTest
         public void Anchored()
         {
             var input = new ParseInput<char>("1234 567");
-            var num = Chars.Digit.Ignored().Repeated(1).ReturnString().Anchored();
+            var num = Chars.Digit.Ignored().AtLeastMany(1).ReturnString().Anchored();
             var parser = num.And(' ').And(num);
             var result = parser(input);
             

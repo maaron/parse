@@ -59,6 +59,10 @@
       <Project>{2200913a-9640-4aca-81a4-be2b158b6130}</Project>
       <Name>Parse</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Templates\Templates.csproj">
+      <Project>{878bf3ce-d509-4829-a586-917656a1e68b}</Project>
+      <Name>Templates</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

@@ -1,27 +1,13 @@
-﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+﻿<#@ template language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ output extension=".cs" #>
 
-<#
-var Indeces = new[]{1, 2};
-string TypeList = String.Join(",", Indeces.Select(i => "T" + i));
-string VisitFuncParams = String.Join(",", Indeces.Select(i => String.Format("Func<T{0}, T> f{0}", i)));
-var VisitActionParams = String.Join(",", Indeces.Select(i => String.Format("Action<T{0}> f{0}", i)));
-int Count = Indeces.Length;
-#>
-
-using System;
-using System.Text;
-
-namespace FunctionalTest
+namespace Functional
 {
-    public class Variant<<#= TypeList #>>
+    public class Variant<<#= TypeList #>> : Variant
     {
-        Object value;
-
 <# foreach (var i in Indeces) { #>
         public T<#= i #> Item<#= i #> { get { return (T<#= i #>)value; } }
 <# } #>
@@ -37,11 +23,10 @@ namespace FunctionalTest
         }
 <# } #>
 
+		public Variant(Variant v) : base(v) {}
+
 <# foreach (var i in Indeces) { #>
-        public Variant(T<#= i #> t)
-        {
-            this.value = t;
-        }
+        public Variant(T<#= i #> t) : base(t) {}
 <# } #>
 
         public T Visit<T>(<#= VisitFuncParams #>)

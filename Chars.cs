@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Parse.Extensions;
+using Parse.Combinators;
 using Parse.InputExtensions;
 
 namespace Parse
 {
-    namespace Character
+    namespace CharCombinators
     {
         public class Chars
         {
@@ -75,7 +75,7 @@ namespace Parse
 
             public static Parser<char, char> AnyOf(string chars)
             {
-                return Chars.Any.If(c => chars.Contains(c));
+                return Any.If(c => chars.Contains(c));
             }
         }
     }

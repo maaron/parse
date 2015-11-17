@@ -17,11 +17,11 @@ namespace Parse
             this.result = failure;
         }
 
-        public bool IsSuccess { get { return result.IsItem0; } }
-        public Success<T> Success { get { return result.Item0; } }
+        public bool IsSuccess { get { return result.IsItem1; } }
+        public Success<T> Success { get { return result.Item1; } }
 
-        public bool IsFailure { get { return result.IsItem1; } }
-        public Failure<T> Failure { get { return result.Item1; } }
+        public bool IsFailure { get { return result.IsItem2; } }
+        public Failure<T> Failure { get { return result.Item2; } }
 
         public R Visit<R>(Func<Success<T>, R> success, Func<Failure<T>, R> failure)
         {
@@ -48,11 +48,11 @@ namespace Parse
             this.result = failure;
         }
 
-        public bool IsSuccess { get { return result.IsItem0; } }
-        public Success<T, V> Success { get { return result.Item0; } }
+        public bool IsSuccess { get { return result.IsItem1; } }
+        public Success<T, V> Success { get { return result.Item1; } }
 
-        public bool IsFailure { get { return result.IsItem1; } }
-        public Failure<T> Failure { get { return result.Item1; } }
+        public bool IsFailure { get { return result.IsItem2; } }
+        public Failure<T> Failure { get { return result.Item2; } }
 
         public R Visit<R>(Func<Success<T, V>, R> success, Func<Failure<T>, R> failure)
         {

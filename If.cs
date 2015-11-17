@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
-        public static Parser<T, V> Condition<T, V>(
-            Parser<T, V> parser,
+        public static Parser<T, V> If<T, V>(
+            this Parser<T, V> parser,
             Func<V, bool> predicate)
         {
             return (input) =>
@@ -18,8 +18,8 @@ namespace Parse
             };
         }
 
-        public static Parser<T> Condition<T>(
-            Parser<T> parser,
+        public static Parser<T> If<T>(
+            this Parser<T> parser,
             Func<bool> predicate)
         {
             return (input) =>

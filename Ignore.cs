@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
-        public static Parser<T> Ignore<T, V>(
-            Parser<T, V> parser)
+        public static Parser<T> Ignored<T, V>(
+            this Parser<T, V> parser)
         {
             return (input) =>
             {

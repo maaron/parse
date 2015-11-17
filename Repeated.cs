@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Functional;
-using Parse.Extensions;
+using Parse.Combinators;
 
-namespace Parse
+namespace Parse.Combinators
 {
-    public partial class Combinators
+    public static partial class Extensions
     {
         public static Parser<T, FList<V>> ZeroOrMore<T, V>(
-            Parser<T, V> parser)
+            this Parser<T, V> parser)
         {
             return (input) =>
             {
@@ -33,7 +33,7 @@ namespace Parse
         }
 
         public static Parser<T> ZeroOrMore<T>(
-            Parser<T> parser)
+            this Parser<T> parser)
         {
             return (input) =>
             {
@@ -53,7 +53,7 @@ namespace Parse
         }
 
         public static Parser<T> Repeat<T>(
-            Parser<T> parser, int count)
+            this Parser<T> parser, int count)
         {
             return (input) =>
             {
@@ -74,7 +74,7 @@ namespace Parse
         }
 
         public static Parser<T, FList<V>> Repeat<T, V>(
-            Parser<T, V> parser, int count)
+            this Parser<T, V> parser, int count)
         {
             return (input) =>
             {
@@ -95,12 +95,12 @@ namespace Parse
             };
         }
 
-        public static Parser<T, FList<V>> AtLeastMany<T, V>(Parser<T, V> parser, int min)
+        public static Parser<T, FList<V>> AtLeastMany<T, V>(this Parser<T, V> parser, int min)
         {
             return ZeroOrMore(parser).If(l => l.Count >= min);
         }
 
-        public static Parser<T> AtLeastMany<T>(Parser<T> parser, int min)
+        public static Parser<T> AtLeastMany<T>(this Parser<T> parser, int min)
         {
             return Repeat(parser, min).And(ZeroOrMore(parser));
         }

@@ -20,4 +20,20 @@ namespace Parse
             Value = value;
         }
     }
+
+    namespace Combinators
+    {
+        public static partial class Extensions
+        {
+            public static Parser<T, Anchor<T, V>> Anchored<T, V>(this Parser<T, V> p)
+            {
+                return input => p(input).Visit(
+                    success => Result.Match(
+                        new Anchor<T, V>(
+                            input, success.Remaining, success.Value), 
+                        success.Remaining),
+                    failure => Result.Fail<T, Anchor<T, V>>(failure.Remaining));
+            }
+        }
+    }
 }
