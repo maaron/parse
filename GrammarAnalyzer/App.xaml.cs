@@ -13,5 +13,9 @@ namespace GrammarAnalyzer
     /// </summary>
     public partial class App : Application
     {
+        private void OnExit(object sender, ExitEventArgs e)
+        {
+            GrammarAnalyzer.Properties.Settings.Default.Save();
+        }
     }
 }

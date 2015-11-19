@@ -12,37 +12,52 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition/>
+                <RowDefinition Height="5"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBox x:Name="inputTextBox" Margin="0" Grid.RowSpan="2" Grid.Row="1"/>
-            <DockPanel Margin="0" LastChildFill="True">
-                <ToolBar x:Name="toolBar" DockPanel.Dock="Top">
-                    <TextBox x:Name="ruleTextBox" Height="22" Margin="0" VerticalAlignment="Top" Width="120" ToolTip="Enter rule name" Text="rule"/>
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <TextBox x:Name="ruleTextBox" 
+            			Height="22" 
+            			Margin="0" 
+            			VerticalAlignment="Top" 
+            			Width="120" 
+            			ToolTip="Enter root rule name" 
+            			Text="{Binding Default.RuleText, Source={StaticResource Settings}}"/>
                     <Button x:Name="analyzeButton" Content="Analyze" Click="analyzeButton_Click"/>
-                </ToolBar>
-                <TextBox x:Name="ebnfTextBox" AcceptsReturn="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Text="rule=&quot;asdf&quot;;"/>
+                </StackPanel>
+                <TextBox x:Name="ebnfTextBox" 
+            		AcceptsReturn="True" 
+            		HorizontalScrollBarVisibility="Auto" 
+            		VerticalScrollBarVisibility="Auto" 
+            		Text="{Binding Default.GrammarText, Source={StaticResource Settings}}"/>
             </DockPanel>
+            <GridSplitter x:Name="gridSplitterRow" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1"/>
+            <TextBox x:Name="inputTextBox" 
+            	Margin="0"
+            	Text="{Binding Default.InputText, Source={StaticResource Settings}}" Grid.Row="2"/>
         </Grid>
-        <Grid Background="#FFE5E5E5" Margin="0,0,6,28" Grid.Column="2">
-            <Grid.Resources>
-                <local:BackgroundConvertor x:Key="isMatchConverter"/>
-                <Style TargetType="{x:Type TextBox}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsMatch}" Value="False">
-                            <Setter Property="Background" Value="Red"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-                <HierarchicalDataTemplate x:Key="AnalysisTemplate" ItemsSource="{Binding SubMatches}">
-                    <TextBox
-            			BorderThickness="0"
-            			Text="{Binding RuleName}"
-            			IsReadOnly="True"
-            			TextWrapping="Wrap" />
-                </HierarchicalDataTemplate>
-            </Grid.Resources>
-            <TreeView x:Name="treeView" ItemTemplate="{StaticResource AnalysisTemplate}"/>
+        <GridSplitter x:Name="gridSplitterColumn" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="1" />
+        <Grid Background="#FFE5E5E5" Grid.Column="2">
+            <TreeView x:Name="treeView">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding SubMatches}">
+                        <TextBlock Text="{Binding RuleName}">
+                            <TextBlock.Style>
+                                <Style>
+                                    <Setter Property="TextBlock.Foreground" Value="Green"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMatch}" Value="False">
+                                            <Setter Property="TextBlock.Foreground" Value="Red"/>
+                                            <Setter Property="TextBlock.FontWeight" Value="Bold"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
         </Grid>
-        <GridSplitter x:Name="gridSplitter" Grid.Column="1" HorizontalAlignment="Stretch" Width="5"/>
     </Grid>
 </Window>
