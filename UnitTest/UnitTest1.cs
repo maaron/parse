@@ -503,8 +503,8 @@ namespace UnitTest
             CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax_rule, "rulename=identifier;");
             CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, "rulename=identifier;");
 
-            var rules = GrammarAnalyzer.EBNF.Ebnf.syntax(new ParseInput<char>("rulename={\"abc\"};"));
-            var analysis = GrammarAnalyzer.EBNF.Ebnf.ParseRule("rulename", rules.Success.Value, new ParseInput<char>("abc"));
+            var rules = GrammarAnalyzer.EBNF.Ebnf.syntax(new ParseInput<char>("rulename=\"abc\",\"def\";"));
+            var analysis = GrammarAnalyzer.EBNF.Ebnf.ParseRule("rulename", rules.Success.Value, new ParseInput<char>("abcdeX"));
             Assert.IsTrue(analysis.IsMatch);
         }
 

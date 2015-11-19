@@ -207,11 +207,17 @@ namespace GrammarAnalyzer.EBNF
             Dictionary<string, Parser<char>> rules)
         {
             var parsers = definition.Terms.Select(t => BuildTerm(t, analysis, rules)).ToArray();
-            return input => parsers
-                .Select(p => p(input))
-                .TakeWhile(r => r.IsSuccess)
-                .DefaultIfEmpty(Result.Fail<char>(input))
-                .Last();
+            return input =>
+            {
+                Result<char> result = null;
+                if (parsers.Length == 0) throw new Exception("Expected non-empty list of terms");
+                foreach (var p in parsers)
+                {
+                    result = p(input);
+                    if (result.IsFailure) break;
+                }
+                return result;
+            };
         }
 
         private static Parser<char> BuildTerm(
