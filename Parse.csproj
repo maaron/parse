@@ -45,8 +45,8 @@
     <Compile Include="Between.cs" />
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
-    <Compile Include="EBNF\Ebnf.cs" />
     <Compile Include="Except.cs" />
+    <Compile Include="ParserClass.cs" />
     <Compile Include="Return.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="FList.cs" />
@@ -79,9 +79,7 @@
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Abnf\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="Variants.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

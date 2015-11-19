@@ -487,18 +487,25 @@ namespace UnitTest
         [TestMethod]
         public void Ebnf()
         {
-            CheckMatch(Parse.EBNF.Ebnf.meta_identifier, "a123qwer");
-            CheckFail(Parse.EBNF.Ebnf.meta_identifier, "123qwer");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.meta_identifier, "a123qwer");
+            CheckFail(GrammarAnalyzer.EBNF.Ebnf.meta_identifier, "123qwer");
 
-            CheckMatch(Parse.EBNF.Ebnf.terminal_string, "\"asdf\"", "asdf");
-            CheckMatch(Parse.EBNF.Ebnf.terminal_string, "'asdf'", "asdf");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.terminal_string, "\"asdf\"", "asdf");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.terminal_string, "'asdf'", "asdf");
 
-            CheckMatch(Parse.EBNF.Ebnf.single_definition, "identifier");
-            CheckMatch(Parse.EBNF.Ebnf.single_definition, "{identifier}");
-            CheckMatch(Parse.EBNF.Ebnf.single_definition, "[identifier]");
-            CheckMatch(Parse.EBNF.Ebnf.single_definition, "(identifier)");
-            CheckMatch(Parse.EBNF.Ebnf.single_definition, "identifier,identifier");
-            CheckMatch(Parse.EBNF.Ebnf.single_definition, "\"terminal\"");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.single_definition, "identifier");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.single_definition, "{identifier}");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.single_definition, "[identifier]");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.single_definition, "(identifier)");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.single_definition, "identifier,identifier");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.single_definition, "\"terminal\"");
+
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax_rule, "rulename=identifier;");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, "rulename=identifier;");
+
+            var rules = GrammarAnalyzer.EBNF.Ebnf.syntax(new ParseInput<char>("rulename={\"abc\"};"));
+            var analysis = GrammarAnalyzer.EBNF.Ebnf.ParseRule("rulename", rules.Success.Value, new ParseInput<char>("abc"));
+            Assert.IsTrue(analysis.IsMatch);
         }
 
         [TestMethod]

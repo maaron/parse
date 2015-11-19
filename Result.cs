@@ -32,6 +32,15 @@ namespace Parse
         {
             result.Visit(success, failure);
         }
+
+        public IParseInput<T> Remaining 
+        {
+            get 
+            { 
+                return IsSuccess ? Success.Remaining 
+                    : Failure.Remaining; 
+            }
+        }
     }
 
     public class Result<T, V>

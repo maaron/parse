@@ -58,11 +58,60 @@ namespace Parse.Combinators
             this Parser<T, Variant<V1, V2>> left,
             Parser<T, V3> right)
         {
-            return (input) =>
+            return OrImpl(left, right,
+                l => new Variant<V1, V2, V3>(l));
+        }
+
+        public static Parser<T, Variant<V1, V2, V3, V4>> Or<T, V1, V2, V3, V4>(
+            this Parser<T, Variant<V1, V2, V3>> left,
+            Parser<T, V4> right)
+        {
+            return OrImpl(left, right,
+                l => new Variant<V1, V2, V3, V4>(l));
+        }
+
+        public static Parser<T, Variant<V1, V2, V3, V4, V5>> Or<T, V1, V2, V3, V4, V5>(
+            this Parser<T, Variant<V1, V2, V3, V4>> left,
+            Parser<T, V5> right)
+        {
+            return OrImpl(left, right,
+                l => new Variant<V1, V2, V3, V4, V5>(l));
+        }
+
+        public static Parser<T, Variant<V1, V2, V3, V4, V5, V6>> Or<T, V1, V2, V3, V4, V5, V6>(
+            this Parser<T, Variant<V1, V2, V3, V4, V5>> left,
+            Parser<T, V6> right)
+        {
+            return OrImpl(left, right,
+                l => new Variant<V1, V2, V3, V4, V5, V6>(l));
+        }
+
+        public static Parser<T, Variant<V1, V2, V3, V4, V5, V6, V7>> Or<T, V1, V2, V3, V4, V5, V6, V7>(
+            this Parser<T, Variant<V1, V2, V3, V4, V5, V6>> left,
+            Parser<T, V7> right)
+        {
+            return OrImpl(left, right,
+                l => new Variant<V1, V2, V3, V4, V5, V6, V7>(l));
+        }
+
+        public static Parser<T, Variant<V1, V2, V3, V4, V5, V6, V7, V8>> Or<T, V1, V2, V3, V4, V5, V6, V7, V8>(
+            this Parser<T, Variant<V1, V2, V3, V4, V5, V6, V7>> left,
+            Parser<T, V8> right)
+        {
+            return OrImpl(left, right,
+                l => new Variant<V1, V2, V3, V4, V5, V6, V7, V8>(l));
+        }
+
+        public static Parser<T, V3> OrImpl<T, V1, V2, V3>(
+            Parser<T, V1> left,
+            Parser<T, V2> right,
+            Func<Variant, V3> f) where V1 : Variant
+        {
+            return input =>
             {
                 return left(input).Visit(
-                    success => Result.Match(new Variant<V1, V2, V3>(success.Value), success.Remaining),
-                    failure => right(input).MapValue(v => new Variant<V1, V2, V3>(v)));
+                    success => Result.Match(f(success.Value), success.Remaining),
+                    failure => right(input).MapValue(r => f(new Variant<V2>(r))));
             };
         }
 
@@ -89,6 +138,17 @@ namespace Parse
                 return parsers.Select(p => p(input))
                     .Where(r => r.IsSuccess).FirstOrDefault() 
                         ?? Result.Fail<T, V>(input);
+            };
+        }
+
+        public static Parser<T> AnyOf<T>(
+            params Parser<T>[] parsers)
+        {
+            return (input) =>
+            {
+                return parsers.Select(p => p(input))
+                    .Where(r => r.IsSuccess).FirstOrDefault()
+                        ?? Result.Fail<T>(input);
             };
         }
     }

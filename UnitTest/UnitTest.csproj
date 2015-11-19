@@ -53,8 +53,13 @@
   <ItemGroup>
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnitTest2.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GrammarAnalyzer\GrammarAnalyzer.csproj">
+      <Project>{b557bb66-eb3a-40ed-91ba-ef038050dc13}</Project>
+      <Name>GrammarAnalyzer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Parse.csproj">
       <Project>{2200913a-9640-4aca-81a4-be2b158b6130}</Project>
       <Name>Parse</Name>
