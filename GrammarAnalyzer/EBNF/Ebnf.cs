@@ -92,14 +92,90 @@ namespace GrammarAnalyzer.EBNF
             var letter = Chars.Letter.Ignored();
             var digit = Chars.Digit.Ignored();
             var character = Chars.Any.Ignored();
+
+            // The following is the first part of the formal grammar from the 
+            // EBNF spec.  However, it isn't done this way because it isn't 
+            // quite clear how this can be fed to the next part of the 
+            // grammar.
+#if false
+            var concatenate_symbol = Chars.Const(',');
+            var defining_symbol = Chars.Const('=');
+            var definition_separator_symbol = Chars.AnyOf("|/!").Ignored();
+            var end_comment_symbol = Chars.String("*)");
+            var end_group_symbol = Chars.Const(')');
+            var end_option_symbol = ']'.Or("/)");
+            var end_repeat_symbol = '}'.Or(":)");
+            var except_symbol = Chars.Const('-');
+            var first_quote_symbol = Chars.Const('\'');
+            var repetition_symbol = Chars.Const('*');
+            var second_quote_symbol = Chars.Const('"');
+            var special_sequence_symbol = Chars.Const('?');
+            var start_comment_symbol = Chars.String("(*");
+            var start_group_symbol = Chars.Const('(');
+            var start_option_symbol = '['.Or("(/");
+            var start_repeat_symbol = '{'.Or("(:");
+            var terminator_symbol = ';'.Or('.');
+            var other_character = Chars.AnyOf(" :+_%@&#$<>\\^`~").Ignored();
+            var newline = "\r\n".Or('\r').Or('\n');
+            var htab = Chars.Const('\t');
+            var terminal_character = Combinator.AnyOf(
+                letter,
+                digit,
+                concatenate_symbol,
+                defining_symbol,
+                definition_separator_symbol,
+                end_comment_symbol,
+                end_option_symbol,
+                end_group_symbol,
+                end_repeat_symbol,
+                except_symbol,
+                first_quote_symbol,
+                repetition_symbol,
+                second_quote_symbol,
+                special_sequence_symbol,
+                start_comment_symbol,
+                start_group_symbol,
+                start_option_symbol,
+                start_repeat_symbol,
+                terminator_symbol,
+                other_character);
+
+            var gap_free_symbol = terminator_symbol.Except(
+                first_quote_symbol.Or(second_quote_symbol));
+
+            var first_terminal_character = terminal_character.Except(
+                first_quote_symbol);
+
+            var second_terminal_character = terminal_character.Except(
+                second_quote_symbol);
+
+            var terminal_string =
+                first_quote_symbol
+                .And(first_terminal_character)
+                .And(first_terminal_character.ZeroOrMore())
+                .And(first_quote_symbol)
+                .Or(second_quote_symbol
+                    .And(second_terminal_character)
+                    .And(second_terminal_character.ZeroOrMore())
+                    .And(second_quote_symbol));
+
+            var gap_separator = Chars.Space.Ignored();
+
+            var syntax = gap_separator.ZeroOrMore().And(
+                gap_free_symbol.And(gap_separator.ZeroOrMore()).AtLeastMany(1));
+#endif
+            
+            // Old, informal implementation
             var ws = Chars.Space.Ignored().ZeroOrMore();
-            var lbracket = ws.And(Chars.Const('[')).And(ws);
-            var rbracket = ws.And(Chars.Const(']')).And(ws);
-            var lbrace = ws.And(Chars.Const('{')).And(ws);
-            var rbrace = ws.And(Chars.Const('}')).And(ws);
-            var lparen = ws.And(Chars.Const('(')).And(ws);
-            var rparen = ws.And(Chars.Const(')')).And(ws);
-            var integer = digit.Repeat(1).ReturnString().Return(s => int.Parse(s));
+            var lbracket = Chars.Const('[');
+            var rbracket = Chars.Const(']');
+            var lbrace = Chars.Const('{');
+            var rbrace = Chars.Const('}');
+            var lparen = Chars.Const('(');
+            var rparen = Chars.Const(')');
+            var star = '*';
+            var dash = '-';
+            var integer = ws.And(digit.AtLeastMany(1)).ReturnString().Return(s => int.Parse(s));
 
             definitions_list = i => definitions_list_def(i);
 
@@ -112,7 +188,8 @@ namespace GrammarAnalyzer.EBNF
             terminal_string = Quote(character, '"')
                 .OrSame(Quote(character, '\''));
 
-            meta_identifier = letter.And(letter.Or(digit).ZeroOrMore()).ReturnString();
+            var meta_identifier_word = letter.And(letter.Or(digit).ZeroOrMore()).ReturnString();
+            meta_identifier = meta_identifier_word.And(ws).AtLeastMany(1).Return(l => String.Join(" ", l));
 
             special_sequence = Quote(character, '?');
             
@@ -125,21 +202,21 @@ namespace GrammarAnalyzer.EBNF
                 .Or(grouped_sequence.Return(r => new GroupedSequence() { Definitions = r }))
                 .Return(r => new Primary(){ Type = r });
 
-            factor = integer.And('*').Optional().And(primary)
+            factor = integer.And(ws).And(star).Optional().And(ws).And(primary)
                 .Return(r => new Factor()
                 {
                     Repeat = r.Item1,
                     Primary = r.Item2
                 });
 
-            term = factor.And('-'.And(factor).Optional())
+            term = factor.And(ws.And(dash).And(ws).And(factor).Optional())
                 .Return(r => new Term()
                 {
                     Factor = r.Item1,
                     Exception = r.Item2
                 });
 
-            single_definition = term.SplitBy(Chars.Const(','))
+            single_definition = ws.And(term).SplitBy(Chars.Const(','))
                 .Return(r => new SingleDefinition()
                 {
                     Terms = r
@@ -147,7 +224,11 @@ namespace GrammarAnalyzer.EBNF
 
             definitions_list_def = single_definition.SplitBy(Chars.Const('|'));
 
-            syntax_rule = meta_identifier.And('=').And(definitions_list).And(';')
+            syntax_rule = 
+                ws.And(meta_identifier)
+                .And(ws).And('=')
+                .And(definitions_list)
+                .And(ws).And(';')
                 .Return(r => new SyntaxRule()
                 {
                     Name = r.Item1,

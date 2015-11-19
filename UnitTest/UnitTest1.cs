@@ -508,7 +508,8 @@ namespace UnitTest
             var analysis = GrammarAnalyzer.EBNF.Ebnf.ParseRule("rulename", rules.Success.Value, new ParseInput<char>("abcdef"));
             Assert.IsTrue(analysis.IsMatch);
 
-            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, "rule1=asdf;rule2=qwer");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, "rule1=asdf;rule2=qwer;");
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, " rule1 = asdf ; \n rule2 = qwer ;");
         }
 
         [TestMethod]
