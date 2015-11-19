@@ -1,8 +1,48 @@
 ﻿<Window x:Class="GrammarAnalyzer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        xmlns:local="clr-namespace:GrammarAnalyzer"
+        Title="MainWindow" Height="425.49" Width="605.392">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBox x:Name="inputTextBox" Margin="0" Grid.RowSpan="2" Grid.Row="1"/>
+            <DockPanel Margin="0" LastChildFill="True">
+                <ToolBar x:Name="toolBar" DockPanel.Dock="Top">
+                    <TextBox x:Name="ruleTextBox" Height="22" Margin="0" VerticalAlignment="Top" Width="120" ToolTip="Enter rule name" Text="rule"/>
+                    <Button x:Name="analyzeButton" Content="Analyze" Click="analyzeButton_Click"/>
+                </ToolBar>
+                <TextBox x:Name="ebnfTextBox" AcceptsReturn="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Text="rule=&quot;asdf&quot;;"/>
+            </DockPanel>
+        </Grid>
+        <Grid Background="#FFE5E5E5" Margin="0,0,6,28" Grid.Column="2">
+            <Grid.Resources>
+                <local:BackgroundConvertor x:Key="isMatchConverter"/>
+                <Style TargetType="{x:Type TextBox}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMatch}" Value="False">
+                            <Setter Property="Background" Value="Red"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+                <HierarchicalDataTemplate x:Key="AnalysisTemplate" ItemsSource="{Binding SubMatches}">
+                    <TextBox
+            			BorderThickness="0"
+            			Text="{Binding RuleName}"
+            			IsReadOnly="True"
+            			TextWrapping="Wrap" />
+                </HierarchicalDataTemplate>
+            </Grid.Resources>
+            <TreeView x:Name="treeView" ItemTemplate="{StaticResource AnalysisTemplate}"/>
+        </Grid>
+        <GridSplitter x:Name="gridSplitter" Grid.Column="1" HorizontalAlignment="Stretch" Width="5"/>
     </Grid>
 </Window>

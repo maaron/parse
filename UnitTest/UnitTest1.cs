@@ -11,6 +11,7 @@ using Parse.InputExtensions;
 using Parse.CharCombinators;
 using Functional;
 using Parse.Linq;
+using GrammarAnalyzer.EBNF;
 
 namespace UnitTest
 {
@@ -504,8 +505,10 @@ namespace UnitTest
             CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, "rulename=identifier;");
 
             var rules = GrammarAnalyzer.EBNF.Ebnf.syntax(new ParseInput<char>("rulename=\"abc\",\"def\";"));
-            var analysis = GrammarAnalyzer.EBNF.Ebnf.ParseRule("rulename", rules.Success.Value, new ParseInput<char>("abcdeX"));
+            var analysis = GrammarAnalyzer.EBNF.Ebnf.ParseRule("rulename", rules.Success.Value, new ParseInput<char>("abcdef"));
             Assert.IsTrue(analysis.IsMatch);
+
+            CheckMatch(GrammarAnalyzer.EBNF.Ebnf.syntax, "rule1=asdf;rule2=qwer");
         }
 
         [TestMethod]

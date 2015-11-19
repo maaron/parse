@@ -3,15 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 using Parse;
 
 namespace GrammarAnalyzer
 {
-    public class Analysis<T>
+    public class Analysis<T> : INotifyPropertyChanged
     {
         public string RuleName { get; set; }
-        public bool IsMatch { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private bool isMatch;
+        public bool IsMatch
+        {
+            get { return isMatch; }
+            set { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs("IsMatch")); isMatch = value; }
+        }
         public IParseInput<T> Start;
         public IParseInput<T> End;
         public List<Analysis<T>> SubMatches { get; private set; }

@@ -154,7 +154,7 @@ namespace GrammarAnalyzer.EBNF
                     Definitions = r.Item2
                 });
 
-            syntax = syntax_rule.Repeat(1);
+            syntax = syntax_rule.AtLeastMany(1);
         }
 
         private static Parser<char> Analyzed(
@@ -215,6 +215,7 @@ namespace GrammarAnalyzer.EBNF
                 {
                     result = p(input);
                     if (result.IsFailure) break;
+                    input = result.Success.Remaining;
                 }
                 return result;
             };
@@ -294,7 +295,7 @@ namespace GrammarAnalyzer.EBNF
             Dictionary<string, Parser<char>> rules)
         {
             var definitions = BuildDefinitions(repeated.Definitions, analysis, rules);
-            return definitions.ZeroOrMore();
+            return Analyzed("repeated sequence", analysis, definitions.ZeroOrMore());
         }
 
         private static Parser<char> BuildOptional(
@@ -302,8 +303,9 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            return BuildDefinitions(optional.Definitions, analysis, rules)
-                .Optional().Ignored();
+            return Analyzed("optional sequence", analysis, 
+                BuildDefinitions(optional.Definitions, analysis, rules)
+                .Optional().Ignored());
         }
 
         private static Parser<char> BuildGrouped(
@@ -311,7 +313,8 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            return BuildDefinitions(grouped.Definitions, analysis, rules);
+            return Analyzed("grouped sequence", analysis, 
+                BuildDefinitions(grouped.Definitions, analysis, rules));
         }
     }
 }
