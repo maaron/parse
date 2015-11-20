@@ -14,21 +14,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using Parse;
+
 namespace GrammarAnalyzer
 {
-    public class BackgroundConvertor : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return !(bool)value ? new SolidColorBrush(Color.FromArgb(0xFF, 0xFB, 0xB2, 0xB2))
-                : new SolidColorBrush(Color.FromArgb(0xFF, 0xC6, 0xFB, 0xB2));
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -37,6 +26,10 @@ namespace GrammarAnalyzer
         public MainWindow()
         {
             InitializeComponent();
+
+            var doc = inputTextBox.Document;
+            var range = new TextRange(doc.ContentStart, doc.ContentEnd)
+                .Text = Properties.Settings.Default.InputText;
         }
 
         private void analyzeButton_Click(object sender, RoutedEventArgs args)
@@ -46,8 +39,12 @@ namespace GrammarAnalyzer
             {
                 try
                 {
+                    var range = new TextRange(
+                        inputTextBox.Document.ContentStart,
+                        inputTextBox.Document.ContentEnd);
+
                     var analysis = EBNF.Ebnf.ParseRule(ruleTextBox.Text, result.Success.Value,
-                        new Parse.ParseInput<char>(inputTextBox.Text));
+                        new Parse.ParseInput<char>(range.Text));
 
                     treeView.ItemsSource = new[] { analysis };
                 }
@@ -55,6 +52,50 @@ namespace GrammarAnalyzer
                 {
                     Console.WriteLine(e);
                 }
+            }
+        }
+
+        private void inputTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var doc = inputTextBox.Document;
+            Properties.Settings.Default.InputText = new TextRange(
+                doc.ContentStart, doc.ContentEnd).Text;
+        }
+
+        private static IEnumerable<T> Generate<T>(T start, Func<T, T> increment)
+        {
+            while (true)
+            {
+                yield return start;
+                start = increment(start);
+            }
+        }
+
+        private void treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var analysis = (Analysis<char>)e.NewValue;
+            var doc = inputTextBox.Document;
+
+            var all = new TextRange(doc.ContentStart, doc.ContentEnd);
+            all.ClearAllProperties();
+
+            if (analysis.IsMatch && !analysis.End.Equals(analysis.Start))
+            {
+                var start = (ParseInput<char>)analysis.Start;
+                var end = (ParseInput<char>)analysis.End;
+#if false
+                var chars = from p in inputTextBox.Document.Blocks.OfType<Paragraph>()
+                            from run in p.Inlines.OfType<Run>()
+                            from ptr in For(run.ContentStart, t => t.)
+                            select run.ContentStart.GetPositionAtOffset(i);
+#endif
+                var chars = Generate(
+                    doc.ContentStart.GetInsertionPosition(LogicalDirection.Forward),
+                    ptr => ptr.GetNextInsertionPosition(LogicalDirection.Forward))
+                    .TakeWhile(ptr => ptr != null);
+
+                var range = chars.Where((ptr, index) => index == start.Position || index == end.Position).ToArray();
+                new TextRange(range[0], range[1]).ApplyPropertyValue(TextElement.BackgroundProperty, new SolidColorBrush(Colors.LightBlue));
             }
         }
     }

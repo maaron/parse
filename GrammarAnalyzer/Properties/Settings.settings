@@ -3,13 +3,19 @@
   <Profiles />
   <Settings>
     <Setting Name="GrammarText" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">Enter your grammar here</Value>
     </Setting>
     <Setting Name="InputText" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">Enter input to parse here</Value>
     </Setting>
     <Setting Name="RuleText" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">Enter a rule name</Value>
+    </Setting>
+    <Setting Name="MainWindowHeight" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">400</Value>
+    </Setting>
+    <Setting Name="MainWindowWidth" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">400</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -222,7 +222,7 @@ namespace GrammarAnalyzer.EBNF
                     Terms = r
                 });
 
-            definitions_list_def = single_definition.SplitBy(Chars.Const('|'));
+            definitions_list_def = single_definition.SplitBy(ws.And(Chars.Const('|')));
 
             syntax_rule = 
                 ws.And(meta_identifier)
