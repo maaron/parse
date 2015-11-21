@@ -13,6 +13,7 @@ namespace Parse
             return flist;
         }
     }
+
     public class FList<T> : List<T>
     {
         public override bool Equals(object obj)

@@ -2,6 +2,19 @@ using System;
 
 namespace Functional
 {
+    public static class Maybe
+    {
+        public static Maybe<T> Some<T>(T value)
+        {
+            return new Maybe<T>(value);
+        }
+
+        public static Maybe<T> None<T>()
+        {
+            return new Maybe<T>();
+        }
+    }
+
     public class Maybe<T>
     {
         private T value;
@@ -33,7 +46,7 @@ namespace Functional
             }
         }
 
-        public R Visit<R>(Func<R> none, Func<T, R> some)
+        public R Map<R>(Func<R> none, Func<T, R> some)
         {
             if (valid) return some(value);
             else return none();

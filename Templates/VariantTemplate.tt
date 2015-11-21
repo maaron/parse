@@ -29,7 +29,7 @@ namespace Functional
         public Variant(T<#= i #> t) : base(t) {}
 <# } #>
 
-        public T Visit<T>(<#= VisitFuncParams #>)
+        public T Map<T>(<#= VisitFuncParams #>)
         {
 <# foreach (var i in Enumerable.Range(1, Count - 1)) { #>
             if (value is T<#= i #>) return f<#= i #>(this.Item<#= i #>);

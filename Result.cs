@@ -25,7 +25,7 @@ namespace Parse
 
         public R Visit<R>(Func<Success<T>, R> success, Func<Failure<T>, R> failure)
         {
-            return result.Visit(success, failure);
+            return result.Map(success, failure);
         }
 
         public void Visit(Action<Success<T>> success, Action<Failure<T>> failure)
@@ -65,7 +65,7 @@ namespace Parse
 
         public R Visit<R>(Func<Success<T, V>, R> success, Func<Failure<T>, R> failure)
         {
-            return result.Visit(success, failure);
+            return result.Map(success, failure);
         }
 
         public void Visit(Action<Success<T, V>> success, Action<Failure<T>> failure)

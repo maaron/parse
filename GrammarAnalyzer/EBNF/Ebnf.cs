@@ -308,7 +308,7 @@ namespace GrammarAnalyzer.EBNF
             Dictionary<string, Parser<char>> rules)
         {
             var factor = BuildFactor(term.Factor, analysis, rules);
-            return term.Exception.Visit(
+            return term.Exception.Map(
                 () => factor,
                 except => factor.Except(BuildFactor(except, analysis, rules)));
         }
@@ -319,7 +319,7 @@ namespace GrammarAnalyzer.EBNF
             Dictionary<string, Parser<char>> rules)
         {
             var primary = BuildPrimary(factor.Primary, analysis, rules);
-            return factor.Repeat.Visit(
+            return factor.Repeat.Map(
                 () => primary,
                 repeat => primary.Repeat(repeat));
         }
@@ -329,7 +329,7 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            return primary.Type.Visit(
+            return primary.Type.Map(
                 terminal => BuildTerminalString(terminal, analysis, rules),
                 meta => BuildMetaIdentifier(meta, analysis, rules),
                 special => BuildSpecial(special, analysis, rules),

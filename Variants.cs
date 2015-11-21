@@ -24,7 +24,7 @@ namespace Functional
         public Variant(T1 t) : base(t) {}
         public Variant(T2 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2)
         {
             if (value is T1) return f1(this.Item1);
             else return f2(this.Item2);
@@ -84,7 +84,7 @@ namespace Functional
         public Variant(T2 t) : base(t) {}
         public Variant(T3 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3)
         {
             if (value is T1) return f1(this.Item1);
             if (value is T2) return f2(this.Item2);
@@ -153,7 +153,7 @@ namespace Functional
         public Variant(T3 t) : base(t) {}
         public Variant(T4 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4)
         {
             if (value is T1) return f1(this.Item1);
             if (value is T2) return f2(this.Item2);
@@ -231,7 +231,7 @@ namespace Functional
         public Variant(T4 t) : base(t) {}
         public Variant(T5 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5)
         {
             if (value is T1) return f1(this.Item1);
             if (value is T2) return f2(this.Item2);
@@ -318,7 +318,7 @@ namespace Functional
         public Variant(T5 t) : base(t) {}
         public Variant(T6 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5,System.Func<T6, T> f6)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5,System.Func<T6, T> f6)
         {
             if (value is T1) return f1(this.Item1);
             if (value is T2) return f2(this.Item2);
@@ -414,7 +414,7 @@ namespace Functional
         public Variant(T6 t) : base(t) {}
         public Variant(T7 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5,System.Func<T6, T> f6,System.Func<T7, T> f7)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5,System.Func<T6, T> f6,System.Func<T7, T> f7)
         {
             if (value is T1) return f1(this.Item1);
             if (value is T2) return f2(this.Item2);
@@ -519,7 +519,7 @@ namespace Functional
         public Variant(T7 t) : base(t) {}
         public Variant(T8 t) : base(t) {}
 
-        public T Visit<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5,System.Func<T6, T> f6,System.Func<T7, T> f7,System.Func<T8, T> f8)
+        public T Map<T>(System.Func<T1, T> f1,System.Func<T2, T> f2,System.Func<T3, T> f3,System.Func<T4, T> f4,System.Func<T5, T> f5,System.Func<T6, T> f6,System.Func<T7, T> f7,System.Func<T8, T> f8)
         {
             if (value is T1) return f1(this.Item1);
             if (value is T2) return f2(this.Item2);

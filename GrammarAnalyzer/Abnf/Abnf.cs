@@ -10,94 +10,195 @@ namespace Parse.Abnf
 {
     public class Abnf
     {
+        struct TerminalSpec
+        {
+            public Variant<FList<int>, Tuple<int, int>> SequenceOrRange { get; set; }
+        }
+
+        struct Repeat
+        {
+            public int First { get; set; }
+            public Maybe<int> Second { get; set; }
+        }
+
+        struct Element
+        {
+            public Variant<
+                Rulename, 
+                Group, 
+                Option, 
+                CharVal, 
+                TerminalSpec, 
+                ProseVal> Type { get; set; }
+        }
+
+        struct ProseVal
+        {
+            public string Value { get; set; }
+        }
+
+        struct CharVal
+        {
+            public string Value { get; set; }
+        }
+
+        struct Repetition
+        {
+            public Maybe<Repeat> Repeat { get; set; }
+            public Element Element { get; set; }
+        }
+
+        struct Concatenation
+        {
+            public FList<Repetition> Repetitions { get; set; }
+        }
+
         struct Alternation
         {
+            public FList<Concatenation> Concatenations { get; set; }
         }
 
         struct Rulename
         {
-            public string Value { get; private set; }
-            public Rulename(string value) { Value = value; }
+            public string Value { get; set; }
         }
 
         struct Group
         {
-            public Alternation Alternation { get; private set; }
-            public Group(Alternation value) { Alternation = value; }
+            public Alternation Alternation { get; set; }
         }
 
         struct Option
         {
-            public Alternation Alternation { get; private set; }
-            public Option(Alternation value) { Alternation = value; }
+            public Alternation Alternation { get; set; }
         }
-
-        static Parser<char> ALPHA = Chars.Letter.Ignored();
-        static Parser<char> BIT = Chars.AnyOf("01").Ignored();
-        static Parser<char> CHAR = Chars.Any.Except('\0').Ignored();
-        static Parser<char> CRLF = Chars.String("\r\n");
-        static Parser<char> CTL = Chars.Control.Ignored();
-        static Parser<char> DIGIT = Chars.Digit.Ignored();
-        static Parser<char> DQUOTE = Chars.Const('"');
-        static Parser<char> HEXDIG = Chars.AnyOf("0123456789ABCDEF").Ignored();
-        static Parser<char> HTAB = Chars.Const('\t');
-        static Parser<char> SP = Chars.Const(' ');
-        static Parser<char> WSP = SP.Or(HTAB);
-        static Parser<char> LWSP = WSP.Or(CRLF.And(WSP)).ZeroOrMore();
-        static Parser<char> OCTET = Chars.Any.Ignored();
-        static Parser<char> VCHAR = Chars.Any.Except(Chars.Control).Ignored();
-        static Parser<char> comment = ';'.And(WSP.Or(VCHAR).ZeroOrMore()).And(CRLF);
-
-        Parser<char, Abnf> parser;
 
         static Abnf()
         {
+            var ALPHA = Chars.Letter.Ignored();
+            var BIT = Chars.AnyOf("01").Ignored();
+            var CHAR = Chars.Any.Except('\0').Ignored();
+            var CRLF = Chars.String("\r\n");
+            var CTL = Chars.Control.Ignored();
+            var DIGIT = Chars.Digit.Ignored();
+            var DQUOTE = Chars.Const('"');
+            var HEXDIG = Chars.AnyOf("0123456789ABCDEF").Ignored();
+            var HTAB = Chars.Const('\t');
+            var SP = Chars.Const(' ');
+            var WSP = SP.Or(HTAB);
+            var LWSP = WSP.Or(CRLF.And(WSP)).ZeroOrMore();
+            var OCTET = Chars.Any.Ignored();
+            var VCHAR = Chars.Any.Except(Chars.Control).Ignored();
+
+            var comment = ';'.And(WSP.Or(VCHAR).ZeroOrMore()).And(CRLF);
+
             var c_nl = comment.Or(CRLF);
+
             var c_wsp = WSP.Or(c_nl.And(WSP));
+
             var c_wsps = c_wsp.ZeroOrMore();
-            var defined_as = c_wsps.And('='.Or("=/")).ReturnString().And(c_wsps);
-            var num = DIGIT.AtLeastMany(1).ReturnInt();
-            var repeat = num.And('*').And(num).Or(num);
+
+            var dec_num = DIGIT.AtLeastMany(1).ReturnInt();
+            
+            var repeat = dec_num.And('*').And(dec_num).Or(dec_num)
+                .Return(r => r.Map(
+                    two => new Repeat(){ First = two.Item1, Second = two.Item2 },
+                    one => new Repeat(){ First = one }));
+
             Parser<char, Alternation> alternationDef = null;
             Parser<char, Alternation> alternation = i => alternationDef(i);
 
-            var rulename = ALPHA.And(ALPHA.Or(DIGIT).Or('-'))
-                .ReturnString().Return(s => new Rulename(s));
-
             var group = alternation.Between(c_wsp.ZeroOrMore()).Between('(', ')')
-                .Return(a => new Group(a));
+                .Return(a => new Group() { Alternation = a });
 
             var option = alternation.Between(c_wsp.ZeroOrMore()).Between('[', ']')
-                .Return(a => new Option(a));
+                .Return(a => new Option() { Alternation = a });
 
-            var char_val = VCHAR.Except('"').ReturnString().Between(DQUOTE);
+            var char_val = VCHAR.Except('"').ReturnString().Between(DQUOTE)
+                .Return(r => new CharVal(){ Value = r });
 
-            Func<char, Parser<char>, Parser<char, string>> val = (c, p) =>
-                c
-                .And(p.Repeat(1))
+            // This is quite a monstronsity, but abstracts the following pattern in the ABNF spec:
+            // 
+            // bin-val = "b" 1*BIT [ 1*("." 1*BIT) / ("-" 1*BIT) ]
+            // 
+            // For example, "b0110", "b0110.1010.111.00001110", "b10-0111001", 
+            // etc.  The semantic result is either a list of numbers, or a 
+            // "start, end" pair describing a range.  The same pattern is 
+            // used for the dec-val and hex-val rules.  The first parameter is
+            // the character prefix, i.e., 'b', 'd' or 'x', and the second
+            // parameter is a parser that returns an individual number in the
+            // associated base.
+            Func<char, Parser<char, int>, Parser<char, TerminalSpec>> val = (prefix, num) =>
+                prefix
+                .And(num)
                 .And(Extensions.Optional(
-                    '.'.And(p.Repeat(1)).Repeat(1)
-                    .Or('-'.And(p.Repeat(1))))).ReturnString();
+                    '.'.And(num).Repeat(1)
+                    .Or('-'.And(num)))
+                    ).Return(tuple => new TerminalSpec()
+                    {
+                        SequenceOrRange = tuple.Item2.Map(
+                            () => new Variant<FList<int>,Tuple<int,int>>(FList.Create(tuple.Item1)),
+                            some => some.Map(
+                                list => 
+                                {
+                                    list.Insert(0, tuple.Item1);
+                                    return new Variant<FList<int>,Tuple<int,int>>(list);
+                                },
+                                single => new Variant<FList<int>,Tuple<int,int>>(Tuple.Create(tuple.Item1, single))))
+                    });
 
-            var bin_val = val('b', BIT).Return(
+            var bin_num = BIT.ZeroOrMore().ReturnString().Return(
                 s => s.Aggregate(0, (accum, i) => (accum << 1) + i == '1' ? 1 : 0));
 
-            var dec_val = val('d', DIGIT).ReturnInt();
+            var bin_val = val('b', bin_num);
 
-            var hex_val = val('x', HEXDIG).Return(
+            var dec_val = val('d', dec_num);
+
+            var hex_num = HEXDIG.AtLeastMany(1).ReturnString().Return(
                 s => int.Parse(s, NumberStyles.AllowHexSpecifier));
+
+            var hex_val = val('x', hex_num);
 
             var num_val = '%'.And(Combinator.AnyOf(bin_val, dec_val, hex_val));
 
-            var prose_val = Chars.Any.Except(Chars.AnyOf("<>")).Ignored().ZeroOrMore().ReturnString().Between('<', '>');
+            var prose_val = Chars.Any.Except(Chars.AnyOf("<>")).Ignored().ZeroOrMore().ReturnString().Between('<', '>')
+                .Return(r => new ProseVal(){ Value = r });
 
-            var element = rulename.Or(group).Or(option).Or(char_val).Or(num_val).Or(prose_val);
-            var repetition = Extensions.Optional(repeat).And(element);
-            var concatenation = repetition.SplitBy(c_wsp.Repeat(1));
-            alternationDef = concatenation.SplitBy(c_wsps.And('/').And(c_wsps));
-            var elements = alternation.And(c_wsp.ZeroOrMore());
+            var rulename = ALPHA.And(ALPHA.Or(DIGIT).Or('-'))
+                .ReturnString().Return(r => new Rulename(){ Value = r });
+
+            var element = rulename
+                .Or(group)
+                .Or(option)
+                .Or(char_val)
+                .Or(num_val)
+                .Or(prose_val)
+                .Return(r => new Element(){ Type = r });
+
+            var repetition = Extensions.Optional(repeat).And(element)
+                .Return(r => new Repetition()
+                {
+                    Repeat = r.Item1,
+                    Element = r.Item2
+                });
+
+            var concatenation = repetition.SplitBy(c_wsp.AtLeastMany(1))
+                .Return(r => new Concatenation(){ Repetitions = r });
+            
+            alternationDef = concatenation.SplitBy(c_wsps.And('/').And(c_wsps))
+                .Return(r => new Alternation(){ Concatenations = r });
+
+            var elements = alternation.And(c_wsps);
+
+            var definedOp = Chars.String("=/").Return(() => true)
+                .OrSame(Chars.Const('=').Return(() => false));
+
+            var defined_as = c_wsps.And(definedOp).And(c_wsps);
+            
             var rule = rulename.And(defined_as).And(elements).And(c_nl);
-            var rulelist = rule.Repeat(1);
+            
+            var rulelist = rule.Or(c_wsps.And(c_nl)).AtLeastMany(1)
+                .Return(r => from rl in r where rl.IsValid select rl.Value);
         }
     }
 }
