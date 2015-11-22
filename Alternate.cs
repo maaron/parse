@@ -24,7 +24,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     (success) => Result.Match(new Maybe<V>(success.Value), success.Remaining),
                     (failure) => right(input).MapValue(() => new Maybe<V>()));
             };
@@ -48,7 +48,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     (success) => Result.Match(new Variant<V1, V2>(success.Value), success.Remaining),
                     (failure) => right(input).MapValue(v => new Variant<V1, V2>(v)));
             };
@@ -109,7 +109,7 @@ namespace Parse.Combinators
         {
             return input =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     success => Result.Match(f(success.Value), success.Remaining),
                     failure => right(input).MapValue(r => f(new Variant<V2>(r))));
             };
@@ -119,7 +119,7 @@ namespace Parse.Combinators
             this Parser<T, V> left,
             Parser<T, V> right)
         {
-            return input => left(input).Visit(
+            return input => left(input).Map(
                 success => Result.Match(success.Value, success.Remaining),
                 failure => right(input));
         }

@@ -63,7 +63,7 @@ namespace Parse
         public bool IsFailure { get { return result.IsItem2; } }
         public Failure<T> Failure { get { return result.Item2; } }
 
-        public R Visit<R>(Func<Success<T, V>, R> success, Func<Failure<T>, R> failure)
+        public R Map<R>(Func<Success<T, V>, R> success, Func<Failure<T>, R> failure)
         {
             return result.Map(success, failure);
         }
@@ -71,6 +71,15 @@ namespace Parse
         public void Visit(Action<Success<T, V>> success, Action<Failure<T>> failure)
         {
             result.Visit(success, failure);
+        }
+
+        public IParseInput<T> Remaining
+        {
+            get
+            {
+                return IsSuccess ? Success.Remaining
+                    : Failure.Remaining;
+            }
         }
     }
 
@@ -135,25 +144,31 @@ namespace Parse
         public static Result<T, O> MapValue<T, I, O>(
             this Result<T, I> r, Func<I, O> f)
         {
-            return r.Visit(
-                (success) => Match(f(success.Value), success.Remaining),
-                (failure) => Fail<T, O>(failure.Remaining));
-        }
-
-        public static Result<T, I> MapValue<T, I>(
-            this Result<T, I> r)
-        {
-            return r.Visit(
-                (success) => Match(success.Value, success.Remaining),
-                (failure) => Fail<T, I>(failure.Remaining));
+            try
+            {
+                return r.Map(
+                    (success) => Match(f(success.Value), success.Remaining),
+                    (failure) => Fail<T, O>(failure.Remaining));
+            }
+            catch (Exception)
+            {
+                return Result.Fail<T, O>(r.Remaining);
+            }
         }
 
         public static Result<T, O> MapValue<T, O>(
             this Result<T> r, Func<O> f)
         {
-            return r.Visit(
-                (success) => Match(f(), success.Remaining),
-                (failure) => Fail<T, O>(failure.Remaining));
+            try
+            {
+                return r.Visit(
+                    (success) => Match(f(), success.Remaining),
+                    (failure) => Fail<T, O>(failure.Remaining));
+            }
+            catch (Exception)
+            {
+                return Result.Fail<T, O>(r.Remaining);
+            }
         }
     }
 }

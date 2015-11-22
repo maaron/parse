@@ -23,47 +23,47 @@ namespace UnitTest
             return a.Equals(b);
         }
 
-        private static void CheckMatch<V>(Parser<char, V> p, string input, V value)
+        public static void CheckMatch<V>(Parser<char, V> p, string input, V value)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsSuccess);
             Assert.IsTrue(ValueEquals(result.Success.Value, value));
         }
 
-        private static void CheckMatch(Parser<char, string> p, string input, string value)
+        public static void CheckMatch(Parser<char, string> p, string input, string value)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsSuccess);
             Assert.IsTrue(result.Success.Value == value);
         }
 
-        private static void CheckMatch(Parser<char, char> p, string input, char value)
+        public static void CheckMatch(Parser<char, char> p, string input, char value)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsSuccess);
             Assert.IsTrue(result.Success.Value == value);
         }
 
-        private static void CheckMatch<V>(Parser<char, V> p, string input)
+        public static void CheckMatch<V>(Parser<char, V> p, string input)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsSuccess);
         }
 
-        private static void CheckMatch<V>(Parser<char, V> p, string input, Func<V, bool> predicate)
+        public static void CheckMatch<V>(Parser<char, V> p, string input, Func<V, bool> predicate)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsSuccess);
             Assert.IsTrue(predicate(result.Success.Value));
         }
 
-        private static void CheckMatch(Parser<char> p, string input)
+        public static void CheckMatch(Parser<char> p, string input)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsSuccess);
         }
 
-        private static void CheckFail<V>(Parser<char, V> p, string input)
+        public static void CheckFail<V>(Parser<char, V> p, string input)
         {
             var result = p(new ParseInput<char>(input));
             Assert.IsTrue(result.IsFailure);
@@ -283,7 +283,7 @@ namespace UnitTest
         public void Recursive()
         {
             // Lisp-style lists
-            var token = Chars.Letter.AtLeastMany(1).ReturnString();
+            var token = Chars.Letter.Many(1).ReturnString();
 
             var ws = Chars.Space.Ignored().ZeroOrMore();
 
@@ -365,7 +365,7 @@ namespace UnitTest
         public void FilterParser()
         {
             List<int> numbers = new List<int>();
-            var number = Chars.Digit.AtLeastMany(1).Return(l => int.Parse(new string(l.ToArray())));
+            var number = Chars.Digit.Many(1).Return(l => int.Parse(new string(l.ToArray())));
             IParseInput<char> filter = new FilterParser<char>(
                 new ParseInput<char>("1a12b123c1234d"), 
                 number.OnMatch(
@@ -384,7 +384,7 @@ namespace UnitTest
         [TestMethod]
         public void Repeated()
         {
-            var number = Chars.Digit.AtLeastMany(1).Return(l => int.Parse(new string(l.ToArray())));
+            var number = Chars.Digit.Many(1).Return(l => int.Parse(new string(l.ToArray())));
             CheckMatch(number, "123", 123);
             CheckFail(number, "");
         }
@@ -417,7 +417,7 @@ namespace UnitTest
 
             dynamic var4 = query.First().Invoke(new Object[] {"asdf"});
 
-            dynamic visitRet = var4.Visit(
+            dynamic visitRet = var4.Map(
                 new Func<char, string>(i => i + " char"),
                 new Func<int, string>(i => i + " int"),
                 new Func<string, string>(i => i + " string"),
@@ -429,7 +429,7 @@ namespace UnitTest
         [TestMethod]
         public void TransformParser()
         {
-            var parser = Chars.Letter.AtLeastMany(1).ReturnString().And(' ');
+            var parser = Chars.Letter.Many(1).ReturnString().And(' ');
 
             var input = new ParseInput<char>("asdf qwer zxcv ");
             IParseInput<string> transformed = new TransformParser<char, string>(input, parser);
@@ -462,7 +462,7 @@ namespace UnitTest
         public void Anchored()
         {
             var input = new ParseInput<char>("1234 567");
-            var num = Chars.Digit.Ignored().AtLeastMany(1).ReturnString().Anchored();
+            var num = Chars.Digit.Ignored().Many(1).ReturnString().Anchored();
             var parser = num.And(' ').And(num);
             var result = parser(input);
             

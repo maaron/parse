@@ -27,7 +27,7 @@ namespace Parse
         {
             public static Parser<T, Anchor<T, V>> Anchored<T, V>(this Parser<T, V> p)
             {
-                return input => p(input).Visit(
+                return input => p(input).Map(
                     success => Result.Match(
                         new Anchor<T, V>(
                             input, success.Remaining, success.Value), 

@@ -33,7 +33,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return parser(input).Visit(
+                return parser(input).Map(
                     (success) =>
                     {
                         action(success.Value, success.Remaining);
@@ -49,7 +49,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return parser(input).Visit(
+                return parser(input).Map(
                     (success) =>
                     {
                         return Result.Match(success.Value, success.Remaining);

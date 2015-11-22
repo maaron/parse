@@ -175,7 +175,7 @@ namespace GrammarAnalyzer.EBNF
             var rparen = Chars.Const(')');
             var star = '*';
             var dash = '-';
-            var integer = ws.And(digit.AtLeastMany(1)).ReturnString().Return(s => int.Parse(s));
+            var integer = ws.And(digit.Many(1)).ReturnString().Return(s => int.Parse(s));
 
             definitions_list = i => definitions_list_def(i);
 
@@ -189,7 +189,7 @@ namespace GrammarAnalyzer.EBNF
                 .OrSame(Quote(character, '\''));
 
             var meta_identifier_word = letter.And(letter.Or(digit).ZeroOrMore()).ReturnString();
-            meta_identifier = meta_identifier_word.And(ws).AtLeastMany(1).Return(l => String.Join(" ", l));
+            meta_identifier = meta_identifier_word.And(ws).Many(1).Return(l => String.Join(" ", l));
 
             special_sequence = Quote(character, '?');
             
@@ -235,7 +235,7 @@ namespace GrammarAnalyzer.EBNF
                     Definitions = r.Item2
                 });
 
-            syntax = syntax_rule.AtLeastMany(1);
+            syntax = syntax_rule.Many(1);
         }
 
         private static Parser<char> Analyzed(

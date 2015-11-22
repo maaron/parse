@@ -7,7 +7,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return parser(input).Visit(
+                return parser(input).Map(
                     (success) => Result.Fail<T>(success.Remaining),
                     (failure) => Result.Match<T>(input));
             };

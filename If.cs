@@ -10,7 +10,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return parser(input).Visit(
+                return parser(input).Map(
                     (success) => predicate(success.Value) ?
                         Result.Match(success.Value, success.Remaining) :
                         Result.Fail<T, V>(input),

@@ -8,14 +8,25 @@ namespace Parse
     {
         public static FList<T> Create<T>(params T[] items)
         {
-            var flist = new FList<T>();
-            foreach (var i in items) flist.Add(i);
-            return flist;
+            return new FList<T>(items);
+        }
+
+        public static FList<T> Create<T>(IEnumerable<T> items)
+        {
+            return new FList<T>(items);
         }
     }
 
     public class FList<T> : List<T>
     {
+        public FList() : base()
+        {
+        }
+
+        public FList(IEnumerable<T> items) : base(items)
+        {
+        }
+
         public override bool Equals(object obj)
         {
             var other = obj as IEnumerable<T>;

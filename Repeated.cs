@@ -95,12 +95,12 @@ namespace Parse.Combinators
             };
         }
 
-        public static Parser<T, FList<V>> AtLeastMany<T, V>(this Parser<T, V> parser, int min)
+        public static Parser<T, FList<V>> Many<T, V>(this Parser<T, V> parser, int min)
         {
             return ZeroOrMore(parser).If(l => l.Count >= min);
         }
 
-        public static Parser<T> AtLeastMany<T>(this Parser<T> parser, int min)
+        public static Parser<T> Many<T>(this Parser<T> parser, int min)
         {
             return Repeat(parser, min).And(ZeroOrMore(parser));
         }

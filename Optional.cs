@@ -9,7 +9,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return parser(input).Visit(
+                return parser(input).Map(
                     (success) => Result.Match(new Maybe<V>(success.Value), success.Remaining),
                     (failure) => Result.Match(new Maybe<V>(), input));
             };

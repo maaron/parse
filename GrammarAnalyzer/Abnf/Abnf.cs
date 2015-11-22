@@ -5,23 +5,24 @@ using Parse.Combinators;
 using Parse.CharCombinators;
 using Functional;
 using System.Globalization;
+using System.Diagnostics;
 
-namespace Parse.Abnf
+namespace GrammarAnalyzer
 {
     public class Abnf
     {
-        struct TerminalSpec
+        public struct TerminalSpec
         {
             public Variant<FList<int>, Tuple<int, int>> SequenceOrRange { get; set; }
         }
 
-        struct Repeat
+        public struct Repeat
         {
             public int First { get; set; }
             public Maybe<int> Second { get; set; }
         }
 
-        struct Element
+        public struct Element
         {
             public Variant<
                 Rulename, 
@@ -32,57 +33,67 @@ namespace Parse.Abnf
                 ProseVal> Type { get; set; }
         }
 
-        struct ProseVal
+        public struct ProseVal
         {
             public string Value { get; set; }
         }
 
-        struct CharVal
+        public struct CharVal
         {
             public string Value { get; set; }
         }
 
-        struct Repetition
+        public struct Repetition
         {
             public Maybe<Repeat> Repeat { get; set; }
-            public Element Element { get; set; }
+            public Variant<
+                Rulename,
+                Group,
+                Option,
+                CharVal,
+                TerminalSpec,
+                ProseVal> Element { get; set; }
         }
 
-        struct Concatenation
+        public struct Alternation
         {
             public FList<Repetition> Repetitions { get; set; }
         }
 
-        struct Alternation
-        {
-            public FList<Concatenation> Concatenations { get; set; }
-        }
-
-        struct Rulename
+        public struct Rulename
         {
             public string Value { get; set; }
         }
 
-        struct Group
+        public struct Group
         {
-            public Alternation Alternation { get; set; }
+            public FList<Alternation> Alternations { get; set; }
         }
 
-        struct Option
+        public struct Option
         {
-            public Alternation Alternation { get; set; }
+            public FList<Alternation> Alternations { get; set; }
         }
+
+        public struct Rule
+        {
+            public string Name { get; set; }
+            public bool IsAdditional { get; set; }
+            public FList<Alternation> Alternations { get; set; }
+        }
+
+        public static Parser<char, FList<Rule>> syntax;
 
         static Abnf()
         {
             var ALPHA = Chars.Letter.Ignored();
             var BIT = Chars.AnyOf("01").Ignored();
             var CHAR = Chars.Any.Except('\0').Ignored();
-            var CRLF = Chars.String("\r\n");
+            var CRLF = Chars.String("\r\n").Or('\r').Or('\n');
             var CTL = Chars.Control.Ignored();
             var DIGIT = Chars.Digit.Ignored();
             var DQUOTE = Chars.Const('"');
-            var HEXDIG = Chars.AnyOf("0123456789ABCDEF").Ignored();
+            var HEXDIG = Chars.AnyOf("0123456789ABCDEFabcdef").Ignored();
             var HTAB = Chars.Const('\t');
             var SP = Chars.Const(' ');
             var WSP = SP.Or(HTAB);
@@ -98,23 +109,23 @@ namespace Parse.Abnf
 
             var c_wsps = c_wsp.ZeroOrMore();
 
-            var dec_num = DIGIT.AtLeastMany(1).ReturnInt();
+            var dec_num = DIGIT.Many(1).ReturnInt();
             
             var repeat = dec_num.And('*').And(dec_num).Or(dec_num)
                 .Return(r => r.Map(
                     two => new Repeat(){ First = two.Item1, Second = two.Item2 },
                     one => new Repeat(){ First = one }));
 
-            Parser<char, Alternation> alternationDef = null;
-            Parser<char, Alternation> alternation = i => alternationDef(i);
+            Parser<char, FList<Alternation>> alternationDef = null;
+            Parser<char, FList<Alternation>> alternation = i => alternationDef(i);
 
             var group = alternation.Between(c_wsp.ZeroOrMore()).Between('(', ')')
-                .Return(a => new Group() { Alternation = a });
+                .Return(r => new Group() { Alternations = r });
 
             var option = alternation.Between(c_wsp.ZeroOrMore()).Between('[', ']')
-                .Return(a => new Option() { Alternation = a });
+                .Return(r => new Option() { Alternations = r });
 
-            var char_val = VCHAR.Except('"').ReturnString().Between(DQUOTE)
+            var char_val = VCHAR.Except('"').Many(1).ReturnString().Between(DQUOTE)
                 .Return(r => new CharVal(){ Value = r });
 
             // This is quite a monstronsity, but abstracts the following pattern in the ABNF spec:
@@ -131,30 +142,30 @@ namespace Parse.Abnf
             Func<char, Parser<char, int>, Parser<char, TerminalSpec>> val = (prefix, num) =>
                 prefix
                 .And(num)
-                .And(Extensions.Optional(
-                    '.'.And(num).Repeat(1)
-                    .Or('-'.And(num)))
-                    ).Return(tuple => new TerminalSpec()
-                    {
-                        SequenceOrRange = tuple.Item2.Map(
-                            () => new Variant<FList<int>,Tuple<int,int>>(FList.Create(tuple.Item1)),
-                            some => some.Map(
-                                list => 
-                                {
-                                    list.Insert(0, tuple.Item1);
-                                    return new Variant<FList<int>,Tuple<int,int>>(list);
-                                },
-                                single => new Variant<FList<int>,Tuple<int,int>>(Tuple.Create(tuple.Item1, single))))
-                    });
+                .And('.'.And(num).Many(1)
+                    .Or('-'.And(num)).Optional())
+                .Return(tuple => new TerminalSpec()
+                {
+                    SequenceOrRange = tuple.Item2.Map(
+                        () => new Variant<FList<int>,Tuple<int,int>>(FList.Create(tuple.Item1)),
+                        some => some.Map(
+                            list => 
+                            {
+                                list.Insert(0, tuple.Item1);
+                                return new Variant<FList<int>,Tuple<int,int>>(list);
+                            },
+                            single => new Variant<FList<int>,Tuple<int,int>>(Tuple.Create(tuple.Item1, single))))
+                });
 
             var bin_num = BIT.ZeroOrMore().ReturnString().Return(
-                s => s.Aggregate(0, (accum, i) => (accum << 1) + i == '1' ? 1 : 0));
+                s => s.Aggregate(0, 
+                    (accum, i) => (accum << 1) + (i == '1' ? 1 : 0)));
 
             var bin_val = val('b', bin_num);
 
             var dec_val = val('d', dec_num);
 
-            var hex_num = HEXDIG.AtLeastMany(1).ReturnString().Return(
+            var hex_num = HEXDIG.Many(1).ReturnString().Return(
                 s => int.Parse(s, NumberStyles.AllowHexSpecifier));
 
             var hex_val = val('x', hex_num);
@@ -164,16 +175,15 @@ namespace Parse.Abnf
             var prose_val = Chars.Any.Except(Chars.AnyOf("<>")).Ignored().ZeroOrMore().ReturnString().Between('<', '>')
                 .Return(r => new ProseVal(){ Value = r });
 
-            var rulename = ALPHA.And(ALPHA.Or(DIGIT).Or('-'))
-                .ReturnString().Return(r => new Rulename(){ Value = r });
+            var rulename = ALPHA.And(ALPHA.Or(DIGIT).Or('-').ZeroOrMore())
+                .ReturnString().OnMatch((s) => Trace.TraceInformation("rulename ({0})", s));
 
-            var element = rulename
+            var element = rulename.Return(r => new Rulename() { Value = r })
                 .Or(group)
                 .Or(option)
                 .Or(char_val)
                 .Or(num_val)
-                .Or(prose_val)
-                .Return(r => new Element(){ Type = r });
+                .Or(prose_val);
 
             var repetition = Extensions.Optional(repeat).And(element)
                 .Return(r => new Repetition()
@@ -182,11 +192,10 @@ namespace Parse.Abnf
                     Element = r.Item2
                 });
 
-            var concatenation = repetition.SplitBy(c_wsp.AtLeastMany(1))
-                .Return(r => new Concatenation(){ Repetitions = r });
+            var concatenation = repetition.SplitBy(c_wsp.Many(1))
+                .Return(r => new Alternation(){ Repetitions = r });
             
-            alternationDef = concatenation.SplitBy(c_wsps.And('/').And(c_wsps))
-                .Return(r => new Alternation(){ Concatenations = r });
+            alternationDef = concatenation.SplitBy(c_wsps.And('/').And(c_wsps));
 
             var elements = alternation.And(c_wsps);
 
@@ -195,10 +204,16 @@ namespace Parse.Abnf
 
             var defined_as = c_wsps.And(definedOp).And(c_wsps);
             
-            var rule = rulename.And(defined_as).And(elements).And(c_nl);
+            var rule = rulename.And(defined_as).And(elements).And(c_nl)
+                .Return(r => new Rule()
+                {
+                    Name = r.Item1,
+                    IsAdditional = r.Item2,
+                    Alternations = r.Item3
+                });
             
-            var rulelist = rule.Or(c_wsps.And(c_nl)).AtLeastMany(1)
-                .Return(r => from rl in r where rl.IsValid select rl.Value);
+            syntax = rule.Or(c_wsps.And(c_nl)).Many(1)
+                .Return(r => FList.Create(from rl in r where rl.IsValid select rl.Value));
         }
     }
 }

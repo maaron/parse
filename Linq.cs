@@ -23,7 +23,7 @@ namespace Parse
             {
                 return input =>
                 {
-                    return parser(input).Visit(
+                    return parser(input).Map(
                         (success) => predicate(success.Value) ?
                             Result.Match(success.Value, success.Remaining) :
                             Result.Fail<T, V>(input),
@@ -35,7 +35,7 @@ namespace Parse
                 this Parser<T, V1> parser,
                 Func<V1, Parser<T, V2>> selector)
             {
-                return input => parser(input).Visit(
+                return input => parser(input).Map(
                     (success) => selector(success.Value)(success.Remaining),
                     (failure) => Result.Fail<T, V2>(failure.Remaining));
             }
