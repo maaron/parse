@@ -1,0 +1,88 @@
+﻿<UserControl x:Class="GrammarAnalyzer.TextEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="1" Grid.Row="0" Width="17">
+            <Grid DockPanel.Dock="Top" 
+                  HorizontalAlignment="Stretch"
+                  Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Self}}">
+                <Polygon Points="0,5, 10,5, 5,0" 
+                         StrokeThickness="0" Fill="#FF868999" 
+                         Width="10" Height="5"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Grid>
+
+            <Grid DockPanel.Dock="Bottom" 
+                  HorizontalAlignment="Stretch"
+                  Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Self}}">
+                <Polygon Points="0,0, 10,0, 5,5" 
+                         StrokeThickness="0" Fill="#FF868999" 
+                         Width="10" Height="5"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Grid>
+
+            <Border VerticalAlignment="Stretch"
+                    Padding="3,0" Background="#FFE8E8EC">
+                <Rectangle HorizontalAlignment="Stretch" Height="{Binding ViewportHeight}" Fill="#FFD0D1D7"/>
+            </Border>
+        </DockPanel>
+
+        <DockPanel Grid.Column="0" Grid.Row="1" Height="17">
+            <Grid DockPanel.Dock="Left" 
+                  VerticalAlignment="Stretch"
+                  Width="{Binding Path=ActualHeight, RelativeSource={RelativeSource Self}}">
+                <Polygon Points="5,0, 5,10, 0,5" 
+                         StrokeThickness="0" Fill="#FF868999" 
+                         Width="5" Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Grid>
+
+            <Grid DockPanel.Dock="Right" 
+                  VerticalAlignment="Stretch"
+                  Width="{Binding Path=ActualHeight, RelativeSource={RelativeSource Self}}">
+                <Polygon Points="0,0, 0,10, 5,5" 
+                         StrokeThickness="0" Fill="#FF868999" 
+                         Width="5" Height="10"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Grid>
+
+            <Border HorizontalAlignment="Stretch"
+                    Padding="0,3" Background="#FFE8E8EC">
+                <Rectangle VerticalAlignment="Stretch" Width="{Binding ViewportWidth}" Fill="#FFD0D1D7"/>
+            </Border>
+        </DockPanel>
+
+        <!--
+        <ScrollBar Grid.Column="1" Grid.Row="0" 
+                   Orientation="Vertical" 
+                   Value="{Binding VerticalOffset}" 
+                   Minimum="0" 
+                   Maximum="{Binding VerticalSize}"
+                   ViewportSize="{Binding ViewportHeight}"/>
+        
+        <ScrollBar Grid.Column="0" Grid.Row="1" 
+                   Orientation="Horizontal" 
+                   Value="{Binding HorizontalOffset}" 
+                   Minimum="0" 
+                   Maximum="{Binding HorizontalSize}"
+                   ViewportSize="{Binding ViewportWidth}"/>
+        -->
+    </Grid>
+</UserControl>
