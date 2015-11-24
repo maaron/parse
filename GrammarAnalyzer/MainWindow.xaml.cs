@@ -30,6 +30,26 @@ namespace GrammarAnalyzer
             var doc = inputTextBox.Document;
             var range = new TextRange(doc.ContentStart, doc.ContentEnd)
                 .Text = Properties.Settings.Default.InputText;
+#if false
+            var editor = new TextEditor();
+            editor.DataContext = new { 
+                ViewportHeight = 50, ViewportWidth = 100,
+                VerticalOffset = 10, HorizontalOffset = 50
+            };
+#else
+            var editor = new TextEditor2();
+            editor.DataContext = new
+            {
+                Lines = new[] { "asdf", "qwer", "zxcv" }.Select(l => new { Text = l })
+            };
+#endif
+            var window = new Window()
+            {
+                Width = 300,
+                Height = 300
+            };
+            window.Content = editor;
+            window.Show();
         }
 
         private void analyzeButton_Click(object sender, RoutedEventArgs args)

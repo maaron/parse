@@ -6,6 +6,16 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
+        <Grid.Resources>
+            <Style x:Key="ScrollbarRectangle" TargetType="Rectangle">
+                <Setter Property="Fill" Value="#FFD0D1D7"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Fill" Value="#FF868999"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
@@ -14,8 +24,9 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-
-        <DockPanel Grid.Column="1" Grid.Row="0" Width="17">
+        
+        <DockPanel Grid.Column="1" Grid.Row="0" Width="17"
+                   Background="#FFE8E8EC">
             <Grid DockPanel.Dock="Top" 
                   HorizontalAlignment="Stretch"
                   Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Self}}">
@@ -38,11 +49,18 @@
 
             <Border VerticalAlignment="Stretch"
                     Padding="3,0" Background="#FFE8E8EC">
-                <Rectangle HorizontalAlignment="Stretch" Height="{Binding ViewportHeight}" Fill="#FFD0D1D7"/>
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Height="{Binding VerticalOffset}"/>
+                    <Rectangle HorizontalAlignment="Stretch" 
+                               VerticalAlignment="Top"
+                               Height="{Binding ViewportHeight}" 
+                               Style="{StaticResource ScrollbarRectangle}"/>
+                </DockPanel>
             </Border>
         </DockPanel>
 
-        <DockPanel Grid.Column="0" Grid.Row="1" Height="17">
+        <DockPanel Grid.Column="0" Grid.Row="1" Height="17"
+                   Background="#FFE8E8EC">
             <Grid DockPanel.Dock="Left" 
                   VerticalAlignment="Stretch"
                   Width="{Binding Path=ActualHeight, RelativeSource={RelativeSource Self}}">
@@ -64,8 +82,14 @@
             </Grid>
 
             <Border HorizontalAlignment="Stretch"
-                    Padding="0,3" Background="#FFE8E8EC">
-                <Rectangle VerticalAlignment="Stretch" Width="{Binding ViewportWidth}" Fill="#FFD0D1D7"/>
+                    Padding="0,3">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Left" Width="{Binding HorizontalOffset}"/>
+                    <Rectangle HorizontalAlignment="Left"
+                               VerticalAlignment="Stretch" 
+                               Width="{Binding ViewportWidth}" 
+                               Style="{StaticResource ScrollbarRectangle}"/>
+                </DockPanel>
             </Border>
         </DockPanel>
 
