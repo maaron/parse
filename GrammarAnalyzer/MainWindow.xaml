@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:GrammarAnalyzer"
         xmlns:prop="clr-namespace:GrammarAnalyzer.Properties"
+        xmlns:avalon="clr-namespace:ICSharpCode.AvalonEdit;assembly=ICSharpCode.AvalonEdit"
         Title="MainWindow" 
         Height="{Binding Source={x:Static prop:Settings.Default}, Path=MainWindowHeight, Mode=TwoWay}"
         Width="{Binding Source={x:Static prop:Settings.Default}, Path=MainWindowWidth, Mode=TwoWay}">
@@ -29,11 +30,14 @@
             			Text="{Binding Default.RuleText, Source={StaticResource Settings}}"/>
                     <Button x:Name="analyzeButton" Content="Analyze" Click="analyzeButton_Click"/>
                 </StackPanel>
+                <avalon:TextEditor Name="grammarEditor" TextChanged="grammarEditor_TextChanged"/>
+                <!--
                 <TextBox x:Name="ebnfTextBox" 
             		AcceptsReturn="True" 
             		HorizontalScrollBarVisibility="Auto" 
             		VerticalScrollBarVisibility="Auto" 
             		Text="{Binding Default.GrammarText, Source={StaticResource Settings}}"/>
+                -->
             </DockPanel>
             <GridSplitter x:Name="gridSplitterRow" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1"/>
             <!--
@@ -41,6 +45,8 @@
             	Margin="0"
             	Text="{Binding Default.InputText, Source={StaticResource Settings}}" Grid.Row="2"/>
             -->
+            <avalon:TextEditor Name="inputTextBox" TextChanged="inputTextBox_TextChanged" Grid.Row="2"/>
+            <!--
             <RichTextBox x:Name="inputTextBox" TextChanged="inputTextBox_TextChanged" Grid.Row="2">
                 <RichTextBox.Resources>
                     <Style TargetType="{x:Type Paragraph}">
@@ -48,6 +54,7 @@
                     </Style>
                 </RichTextBox.Resources>
             </RichTextBox>
+            -->
         </Grid>
         <GridSplitter x:Name="gridSplitterColumn" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="1" />
         <Grid Background="#FFE5E5E5" Grid.Column="2">

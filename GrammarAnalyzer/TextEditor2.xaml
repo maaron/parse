@@ -7,14 +7,26 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <ScrollViewer>
-            <ListBox VirtualizingStackPanel.IsVirtualizing="True"
-                     ItemsSource="{Binding Lines}">
-                <ListBox.ItemTemplate>
+            <ItemsControl VirtualizingStackPanel.IsVirtualizing="True"
+                     ItemsSource="{Binding Lines, Mode=OneWay}">
+                <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Text, Mode=OneWay}"/>
+                        <ItemsControl ItemsSource="{Binding Runs, Mode=OneWay}" BorderThickness="0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" 
+                                                HorizontalAlignment="Left"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontFamily="Global Monospace"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </ScrollViewer>
     </Grid>
 </UserControl>
