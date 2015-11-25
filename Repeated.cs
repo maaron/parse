@@ -52,6 +52,31 @@ namespace Parse.Combinators
             };
         }
 
+        public static Parser<T, FList<V>> AtMost<T, V>(
+            this Parser<T, V> parser, int count)
+        {
+            return (input) =>
+            {
+                var matches = new FList<V>();
+                bool failed = false;
+                for (int i = 0; i < count && !failed; i++)
+                {
+                    parser(input).Visit(
+                        (success) =>
+                        {
+                            if (input.Equals(success.Remaining)) failed = true;
+                            else
+                            {
+                                input = success.Remaining;
+                                matches.Add(success.Value);
+                            }
+                        },
+                        (failure) => { failed = true; });
+                }
+                return Result.Match(matches, input);
+            };
+        }
+
         public static Parser<T> AtMost<T>(
             this Parser<T> parser, int count)
         {
