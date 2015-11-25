@@ -23,6 +23,23 @@ namespace GrammarAnalyzer
     /// </summary>
     public partial class MainWindow : Window
     {
+        public enum GrammarFormats {Abnf, Ebnf};
+
+        private static Dictionary<GrammarFormats, string> grammarFormats = new Dictionary<GrammarFormats, string>()
+        {
+            {GrammarFormats.Abnf, "Augmented BNF"},
+            {GrammarFormats.Ebnf, "Extended BNF"}
+        };
+
+        public Dictionary<GrammarFormats, string> Formats { get { return grammarFormats; } }
+
+        private GrammarFormats grammarFormat = GrammarFormats.Abnf;
+        public GrammarFormats GrammarFormat 
+        {
+            get { return grammarFormat; } 
+            set { grammarFormat = value; }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,6 +47,7 @@ namespace GrammarAnalyzer
             inputTextBox.Text = Properties.Settings.Default.InputText;
             grammarEditor.Text = Properties.Settings.Default.GrammarText;
             var snapshot = grammarEditor.Document.CreateSnapshot();
+            DataContext = this;
         }
 
         private void analyzeButton_Click(object sender, RoutedEventArgs args)
@@ -38,7 +56,7 @@ namespace GrammarAnalyzer
 
             try
             {
-                if (((string)(formatComboBox.SelectedValue as System.Windows.Controls.ComboBoxItem).Content) == "Augmented BNF")
+                if (grammarFormat == GrammarFormats.Abnf)
                 {
                     var result = Abnf.syntax(input);
 
@@ -49,8 +67,9 @@ namespace GrammarAnalyzer
 
                         treeView.ItemsSource = new[] { analysis };
                     }
+                    else treeView.ItemsSource = null;
                 }
-                else
+                else if (grammarFormat == GrammarFormats.Ebnf)
                 {
                     var result = EBNF.Ebnf.syntax(input);
 
@@ -61,7 +80,9 @@ namespace GrammarAnalyzer
 
                         treeView.ItemsSource = new[] { analysis };
                     }
+                    else treeView.ItemsSource = null;
                 }
+                else throw new Exception("Unsupported grammar format " + grammarFormat);
             }
             catch (Exception e)
             {

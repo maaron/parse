@@ -29,10 +29,11 @@
             			ToolTip="Enter root rule name" 
             			Text="{Binding Default.RuleText, Source={StaticResource Settings}}"/>
                     <Button x:Name="analyzeButton" Content="Analyze" Click="analyzeButton_Click"/>
-                    <ComboBox Name="formatComboBox">
-                        <ComboBoxItem IsSelected="True">Augmented BNF</ComboBoxItem>
-                        <ComboBoxItem>Extended BNF</ComboBoxItem>
-                    </ComboBox>
+                    <ComboBox Name="formatComboBox" 
+                              ItemsSource="{Binding Formats}" 
+                              DisplayMemberPath="Value" 
+                              SelectedValuePath="Key"
+                              SelectedValue="{Binding GrammarFormat}"/>
                 </StackPanel>
                 <avalon:TextEditor Name="grammarEditor" 
                                    TextChanged="grammarEditor_TextChanged">
