@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Parse;
 using Parse.Combinators;
@@ -9,6 +10,14 @@ using System.Diagnostics;
 
 namespace GrammarAnalyzer
 {
+    using Element = Variant<
+        Abnf.Rulename,
+        Abnf.Group,
+        Abnf.Option,
+        Abnf.CharVal,
+        Abnf.TerminalSpec,
+        Abnf.ProseVal>;
+
     public class Abnf
     {
         public struct TerminalSpec
@@ -18,19 +27,7 @@ namespace GrammarAnalyzer
 
         public struct Repeat
         {
-            public int First { get; set; }
-            public Maybe<int> Second { get; set; }
-        }
-
-        public struct Element
-        {
-            public Variant<
-                Rulename, 
-                Group, 
-                Option, 
-                CharVal, 
-                TerminalSpec, 
-                ProseVal> Type { get; set; }
+            public Variant<Tuple<Maybe<int>, Maybe<int>>, int> RangeOrCount { get; set; }
         }
 
         public struct ProseVal
@@ -46,13 +43,7 @@ namespace GrammarAnalyzer
         public struct Repetition
         {
             public Maybe<Repeat> Repeat { get; set; }
-            public Variant<
-                Rulename,
-                Group,
-                Option,
-                CharVal,
-                TerminalSpec,
-                ProseVal> Element { get; set; }
+            public Element Element { get; set; }
         }
 
         public struct Alternation
@@ -110,11 +101,9 @@ namespace GrammarAnalyzer
             var c_wsps = c_wsp.ZeroOrMore();
 
             var dec_num = DIGIT.Many(1).ReturnInt();
-            
-            var repeat = dec_num.And('*').And(dec_num).Or(dec_num)
-                .Return(r => r.Map(
-                    two => new Repeat(){ First = two.Item1, Second = two.Item2 },
-                    one => new Repeat(){ First = one }));
+
+            var repeat = dec_num.Optional().And('*').And(dec_num.Optional()).Or(dec_num)
+                .Return(r => new Repeat() { RangeOrCount = r });
 
             Parser<char, FList<Alternation>> alternationDef = null;
             Parser<char, FList<Alternation>> alternation = i => alternationDef(i);
@@ -185,14 +174,14 @@ namespace GrammarAnalyzer
                 .Or(num_val)
                 .Or(prose_val);
 
-            var repetition = Extensions.Optional(repeat).And(element)
+            var repetition = repeat.Optional().And(element)
                 .Return(r => new Repetition()
                 {
                     Repeat = r.Item1,
                     Element = r.Item2
                 });
 
-            var concatenation = repetition.SplitBy(c_wsp.Many(1))
+            var concatenation = repetition.And(c_wsps).Many(1)
                 .Return(r => new Alternation(){ Repetitions = r });
             
             alternationDef = concatenation.SplitBy(c_wsps.And('/').And(c_wsps));
@@ -214,6 +203,54 @@ namespace GrammarAnalyzer
             
             syntax = rule.Or(c_wsps.And(c_nl)).Many(1)
                 .Return(r => FList.Create(from rl in r where rl.IsValid select rl.Value));
+        }
+
+        private static Parser<char> BuildAlternations(
+            FList<Alternation> alternations,
+            AnalysisBuilder<char> analysis,
+            Dictionary<string, Parser<char>> rules)
+        {
+            Func<Element, Parser<char>> BuildElement = element => 
+            {
+                return element.Map(
+                    rulename => rules[rulename.Value],
+                    group => BuildAlternations(group.Alternations, analysis, rules),
+                    option => BuildAlternations(option.Alternations, analysis, rules).Optional().Ignored(),
+                    charval => Chars.String(charval.Value),
+                    terminal => terminal.SequenceOrRange.Map(
+                        seq => Combinator.Sequence(seq.Select(c => Chars.Const((char)c)).ToArray()),
+                        range => Chars.Any.If(c => c >= range.Item1 && c <= range.Item2).Ignored()),
+                    proseval => Chars.String(proseval.Value));
+            };
+
+            return Combinator.AnyOf(alternations.Select(
+                alt => Combinator.Sequence(alt.Repetitions.Select(rep => 
+                {
+                    var elem = BuildElement(rep.Element);
+                    return rep.Repeat.Map(
+                        () => elem,
+                        some => some.RangeOrCount.Map(
+                            range => range.Item1.IsValid && range.Item2.IsValid ? elem.Many(range.Item1.Value, range.Item2.Value)
+                                : range.Item1.IsValid ? elem.Many(range.Item1.Value)
+                                : range.Item2.IsValid ? elem.AtMost(range.Item2.Value)
+                                : elem.ZeroOrMore(),
+                            count => elem.Repeat(count)));
+                }))));
+        }
+
+        public static Analysis<char> ParseRule(
+            string ruleName, FList<Rule> rules, IParseInput<char> input)
+        {
+            var analysis = new AnalysisBuilder<char>();
+            var ruleTable = new Dictionary<string, Parser<char>>();
+            
+            foreach (var rule in rules)
+                ruleTable.Add(rule.Name, 
+                    BuildAlternations(rule.Alternations, analysis, ruleTable)
+                        .Analyzed("rule " + rule.Name, analysis));
+            
+            ruleTable[ruleName](input);
+            return analysis.ToAnalysis();
         }
     }
 }

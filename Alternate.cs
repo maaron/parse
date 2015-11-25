@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Functional;
 
@@ -143,6 +144,11 @@ namespace Parse
 
         public static Parser<T> AnyOf<T>(
             params Parser<T>[] parsers)
+        {
+            return AnyOf((IEnumerable<Parser<T>>)parsers);
+        }
+
+        public static Parser<T> AnyOf<T>(IEnumerable<Parser<T>> parsers)
         {
             return (input) =>
             {

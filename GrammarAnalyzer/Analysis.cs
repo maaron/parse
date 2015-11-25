@@ -9,6 +9,23 @@ using Parse;
 
 namespace GrammarAnalyzer
 {
+    public static class Extensions
+    {
+        public static Parser<T> Analyzed<T>(
+            this Parser<T> parser,
+            string name, 
+            AnalysisBuilder<T> analysis)
+        {
+            return input =>
+            {
+                analysis.PushFrame(name, input);
+                var result = parser(input);
+                analysis.PopFrame(result);
+                return result;
+            };
+        }
+    }
+
     public class Analysis<T> : INotifyPropertyChanged
     {
         public string RuleName { get; set; }

@@ -52,6 +52,26 @@ namespace Parse.Combinators
             };
         }
 
+        public static Parser<T> AtMost<T>(
+            this Parser<T> parser, int count)
+        {
+            return (input) =>
+            {
+                bool failed = false;
+                for (int i = 0; i < count && !failed; i++)
+                {
+                    parser(input).Visit(
+                        (success) =>
+                        {
+                            if (input.Equals(success.Remaining)) failed = true;
+                            else input = success.Remaining;
+                        },
+                        (failure) => { failed = true; });
+                }
+                return Result.Match(input);
+            };
+        }
+
         public static Parser<T> Repeat<T>(
             this Parser<T> parser, int count)
         {
@@ -103,6 +123,11 @@ namespace Parse.Combinators
         public static Parser<T> Many<T>(this Parser<T> parser, int min)
         {
             return Repeat(parser, min).And(ZeroOrMore(parser));
+        }
+
+        public static Parser<T> Many<T>(this Parser<T> parser, int min, int max)
+        {
+            return parser.Repeat(min).And(AtMost(parser, max));
         }
     }
 }

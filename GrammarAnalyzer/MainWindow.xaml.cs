@@ -34,20 +34,39 @@ namespace GrammarAnalyzer
 
         private void analyzeButton_Click(object sender, RoutedEventArgs args)
         {
-            var result = EBNF.Ebnf.syntax(new Parse.ParseInput<char>(grammarEditor.Text));
-            if (result.IsSuccess)
-            {
-                try
-                {
-                    var analysis = EBNF.Ebnf.ParseRule(ruleTextBox.Text, result.Success.Value,
-                        new Parse.ParseInput<char>(inputTextBox.Text));
+            var input = new Parse.ParseInput<char>(grammarEditor.Text);
 
-                    treeView.ItemsSource = new[] { analysis };
-                }
-                catch (Exception e)
+            try
+            {
+                if (((string)(formatComboBox.SelectedValue as System.Windows.Controls.ComboBoxItem).Content) == "Augmented BNF")
                 {
-                    Console.WriteLine(e);
+                    var result = Abnf.syntax(input);
+
+                    if (result.IsSuccess)
+                    {
+                        var analysis = Abnf.ParseRule(ruleTextBox.Text, result.Success.Value,
+                            new Parse.ParseInput<char>(inputTextBox.Text));
+
+                        treeView.ItemsSource = new[] { analysis };
+                    }
                 }
+                else
+                {
+                    var result = EBNF.Ebnf.syntax(input);
+
+                    if (result.IsSuccess)
+                    {
+                        var analysis = EBNF.Ebnf.ParseRule(ruleTextBox.Text, result.Success.Value,
+                            new Parse.ParseInput<char>(inputTextBox.Text));
+
+                        treeView.ItemsSource = new[] { analysis };
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                treeView.ItemsSource = null;
+                Console.WriteLine(e);
             }
         }
 
@@ -73,12 +92,12 @@ namespace GrammarAnalyzer
 
             inputTextBox.Select(0, 0);
 
-            if (analysis.IsMatch && !analysis.End.Equals(analysis.Start))
+            if (analysis != null && analysis.IsMatch && !analysis.End.Equals(analysis.Start))
             {
                 var start = (ParseInput<char>)analysis.Start;
                 var end = (ParseInput<char>)analysis.End;
 
-                inputTextBox.Select(start.Position, end.Position - start.Position);
+                inputTextBox.Select(start.Position, end.Position - start.Position );
 #if false
                 var chars = from p in inputTextBox.Document.Blocks.OfType<Paragraph>()
                             from run in p.Inlines.OfType<Run>()

@@ -95,6 +95,28 @@ namespace UnitTest
                 "rule=identifier1\r identifier2\n", r =>
                 r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier1" &&
                 r[0].Alternations[0].Repetitions[1].Element.Item1.Value == "identifier2");
+
+            UnitTest.CheckMatch(Abnf.syntax,
+                "rule = *identifier\r", r =>
+                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item1.IsValid &&
+                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item2.IsValid &&
+                r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier");
+
+            UnitTest.CheckMatch(Abnf.syntax,
+                "rule = 1*identifier\r", r =>
+                r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item1.Value == 1 &&
+                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item2.IsValid &&
+                r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier");
+
+            UnitTest.CheckMatch(Abnf.syntax,
+                "rule = 1identifier\r", r =>
+                r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item2 == 1 &&
+                r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier");
+
+            UnitTest.CheckMatch(Abnf.syntax,
+                "rule = abc / def\r", r =>
+                r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "abc" &&
+                r[0].Alternations[1].Repetitions[0].Element.Item1.Value == "def");
         }
     }
 }
