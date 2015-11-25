@@ -98,22 +98,6 @@ namespace GrammarAnalyzer
                 var end = (ParseInput<char>)analysis.End;
 
                 inputTextBox.Select(start.Position, end.Position - start.Position );
-#if false
-                var chars = from p in inputTextBox.Document.Blocks.OfType<Paragraph>()
-                            from run in p.Inlines.OfType<Run>()
-                            from ptr in For(run.ContentStart, t => t.)
-                            select run.ContentStart.GetPositionAtOffset(i);
-#endif
-                // For RichTextBox-based solution
-#if false
-                var chars = Generate(
-                    doc.ContentStart.GetInsertionPosition(LogicalDirection.Forward),
-                    ptr => ptr.GetNextInsertionPosition(LogicalDirection.Forward))
-                    .TakeWhile(ptr => ptr != null);
-
-                var range = chars.Where((ptr, index) => index == start.Position || index == end.Position).ToArray();
-                new TextRange(range[0], range[1]).ApplyPropertyValue(TextElement.BackgroundProperty, new SolidColorBrush(Colors.LightBlue));
-#endif
             }
         }
 
