@@ -119,7 +119,7 @@ namespace GrammarAnalyzer
             Parser<char, FList<Alternation>> alternationDef = null;
             Parser<char, FList<Alternation>> alternation = i => alternationDef(i);
 
-            var group = alternation.Between(c_wsp.ZeroOrMore()).Between('(', ')')
+            var group = alternation.Between(c_wsps).Between('(', ')')
                 .Return(r => new Group() { Alternations = r });
 
             var option = alternation.Between(c_wsp.ZeroOrMore()).Between('[', ']')
