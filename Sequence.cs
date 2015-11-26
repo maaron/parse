@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Functional;
 
 namespace Parse.Combinators
@@ -78,6 +79,28 @@ namespace Parse.Combinators
                 return left(input).Map(
                     (success) => right(success.Remaining).MapValue(r => f(success.Value, r)),
                     (failure) => Result.Fail<T, R>(input));
+            };
+        }
+    }
+}
+
+namespace Parse
+{
+    public static partial class Combinator
+    {
+        public static Parser<T> Sequence<T>(
+            IEnumerable<Parser<T>> parsers)
+        {
+            return input =>
+            {
+                Result<T> result = null;
+                foreach (var p in parsers)
+                {
+                    result = p(input);
+                    if (result.IsFailure) break;
+                    input = result.Success.Remaining;
+                }
+                return result;
             };
         }
     }

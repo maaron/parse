@@ -23,6 +23,23 @@ namespace GrammarAnalyzer
     /// </summary>
     public partial class MainWindow : Window
     {
+        public enum GrammarFormats {Abnf, Ebnf};
+
+        private static Dictionary<GrammarFormats, string> grammarFormats = new Dictionary<GrammarFormats, string>()
+        {
+            {GrammarFormats.Abnf, "Augmented BNF"},
+            {GrammarFormats.Ebnf, "Extended BNF"}
+        };
+
+        public Dictionary<GrammarFormats, string> Formats { get { return grammarFormats; } }
+
+        private GrammarFormats grammarFormat = GrammarFormats.Abnf;
+        public GrammarFormats GrammarFormat 
+        {
+            get { return grammarFormat; } 
+            set { grammarFormat = value; }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,24 +47,47 @@ namespace GrammarAnalyzer
             inputTextBox.Text = Properties.Settings.Default.InputText;
             grammarEditor.Text = Properties.Settings.Default.GrammarText;
             var snapshot = grammarEditor.Document.CreateSnapshot();
+            DataContext = this;
         }
 
         private void analyzeButton_Click(object sender, RoutedEventArgs args)
         {
-            var result = EBNF.Ebnf.syntax(new Parse.ParseInput<char>(grammarEditor.Text));
-            if (result.IsSuccess)
-            {
-                try
-                {
-                    var analysis = EBNF.Ebnf.ParseRule(ruleTextBox.Text, result.Success.Value,
-                        new Parse.ParseInput<char>(inputTextBox.Text));
+            var input = new Parse.ParseInput<char>(grammarEditor.Text);
 
-                    treeView.ItemsSource = new[] { analysis };
-                }
-                catch (Exception e)
+            try
+            {
+                if (grammarFormat == GrammarFormats.Abnf)
                 {
-                    Console.WriteLine(e);
+                    var result = Abnf.syntax(input);
+
+                    if (result.IsSuccess)
+                    {
+                        var analysis = Abnf.ParseRule(ruleTextBox.Text, result.Success.Value,
+                            new Parse.ParseInput<char>(inputTextBox.Text));
+
+                        treeView.ItemsSource = new[] { analysis };
+                    }
+                    else treeView.ItemsSource = null;
                 }
+                else if (grammarFormat == GrammarFormats.Ebnf)
+                {
+                    var result = EBNF.Ebnf.syntax(input);
+
+                    if (result.IsSuccess)
+                    {
+                        var analysis = EBNF.Ebnf.ParseRule(ruleTextBox.Text, result.Success.Value,
+                            new Parse.ParseInput<char>(inputTextBox.Text));
+
+                        treeView.ItemsSource = new[] { analysis };
+                    }
+                    else treeView.ItemsSource = null;
+                }
+                else throw new Exception("Unsupported grammar format " + grammarFormat);
+            }
+            catch (Exception e)
+            {
+                treeView.ItemsSource = null;
+                Console.WriteLine(e);
             }
         }
 
@@ -73,28 +113,12 @@ namespace GrammarAnalyzer
 
             inputTextBox.Select(0, 0);
 
-            if (analysis.IsMatch && !analysis.End.Equals(analysis.Start))
+            if (analysis != null && analysis.IsMatch && !analysis.End.Equals(analysis.Start))
             {
                 var start = (ParseInput<char>)analysis.Start;
                 var end = (ParseInput<char>)analysis.End;
 
-                inputTextBox.Select(start.Position, end.Position - start.Position);
-#if false
-                var chars = from p in inputTextBox.Document.Blocks.OfType<Paragraph>()
-                            from run in p.Inlines.OfType<Run>()
-                            from ptr in For(run.ContentStart, t => t.)
-                            select run.ContentStart.GetPositionAtOffset(i);
-#endif
-                // For RichTextBox-based solution
-#if false
-                var chars = Generate(
-                    doc.ContentStart.GetInsertionPosition(LogicalDirection.Forward),
-                    ptr => ptr.GetNextInsertionPosition(LogicalDirection.Forward))
-                    .TakeWhile(ptr => ptr != null);
-
-                var range = chars.Where((ptr, index) => index == start.Position || index == end.Position).ToArray();
-                new TextRange(range[0], range[1]).ApplyPropertyValue(TextElement.BackgroundProperty, new SolidColorBrush(Colors.LightBlue));
-#endif
+                inputTextBox.Select(start.Position, end.Position - start.Position );
             }
         }
 

@@ -238,20 +238,6 @@ namespace GrammarAnalyzer.EBNF
             syntax = syntax_rule.Many(1);
         }
 
-        private static Parser<char> Analyzed(
-            string name, 
-            AnalysisBuilder<char> analysis, 
-            Parser<char> parser)
-        {
-            return input =>
-            {
-                analysis.PushFrame(name, input);
-                var result = parser(input);
-                analysis.PopFrame(result);
-                return result;
-            };
-        }
-
         public static Analysis<char> ParseRule(
             string ruleName,  FList<SyntaxRule> rules,  IParseInput<char> input)
         {
@@ -267,8 +253,9 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            var parser = Analyzed(rule.Name, analysis,
-                BuildDefinitions(rule.Definitions, analysis, rules));
+            var parser = BuildDefinitions(rule.Definitions, analysis, rules)
+                .Analyzed(rule.Name, analysis);
+
             rules.Add(rule.Name, parser);
             return parser;
         }
@@ -287,19 +274,7 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            var parsers = definition.Terms.Select(t => BuildTerm(t, analysis, rules)).ToArray();
-            return input =>
-            {
-                Result<char> result = null;
-                if (parsers.Length == 0) throw new Exception("Expected non-empty list of terms");
-                foreach (var p in parsers)
-                {
-                    result = p(input);
-                    if (result.IsFailure) break;
-                    input = result.Success.Remaining;
-                }
-                return result;
-            };
+            return Combinator.Sequence(definition.Terms.Select(t => BuildTerm(t, analysis, rules)));
         }
 
         private static Parser<char> BuildTerm(
@@ -343,8 +318,8 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            return Analyzed("terminal " + terminal.Value, analysis,
-                Chars.String(terminal.Value));
+            return Chars.String(terminal.Value)
+                .Analyzed("terminal " + terminal.Value, analysis);
         }
 
         private static Parser<char> BuildMetaIdentifier(
@@ -376,7 +351,8 @@ namespace GrammarAnalyzer.EBNF
             Dictionary<string, Parser<char>> rules)
         {
             var definitions = BuildDefinitions(repeated.Definitions, analysis, rules);
-            return Analyzed("repeated sequence", analysis, definitions.ZeroOrMore());
+            return definitions.ZeroOrMore()
+                .Analyzed("repeated sequence", analysis);
         }
 
         private static Parser<char> BuildOptional(
@@ -384,9 +360,9 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            return Analyzed("optional sequence", analysis, 
-                BuildDefinitions(optional.Definitions, analysis, rules)
-                .Optional().Ignored());
+            return BuildDefinitions(optional.Definitions, analysis, rules)
+                .Optional().Ignored()
+                .Analyzed("optional sequence", analysis);
         }
 
         private static Parser<char> BuildGrouped(
@@ -394,8 +370,8 @@ namespace GrammarAnalyzer.EBNF
             AnalysisBuilder<char> analysis,
             Dictionary<string, Parser<char>> rules)
         {
-            return Analyzed("grouped sequence", analysis, 
-                BuildDefinitions(grouped.Definitions, analysis, rules));
+            return BuildDefinitions(grouped.Definitions, analysis, rules)
+                .Analyzed("grouped sequence", analysis);
         }
     }
 }
