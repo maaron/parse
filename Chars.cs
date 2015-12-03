@@ -47,7 +47,7 @@ namespace Parse
             {
                 return (input) =>
                 {
-                    return p(input).Visit(
+                    return p(input).Map(
                         (success) => Result.Match(
                             input.Remaining(success.Remaining).AsString(),
                             success.Remaining),

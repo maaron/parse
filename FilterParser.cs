@@ -12,7 +12,7 @@ namespace Parse
             : base(input)
         {
             this.Parser = parser;
-            adapted = Parser.ZeroOrMore()(adapted).Visit(
+            adapted = Parser.ZeroOrMore()(adapted).Map(
                 (success) => success.Remaining,
                 (failure) => failure.Remaining);
         }

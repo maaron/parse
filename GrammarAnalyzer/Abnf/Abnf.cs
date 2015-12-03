@@ -68,12 +68,14 @@ namespace GrammarAnalyzer
 
         public struct Rule
         {
-            public string Name { get; set; }
+            public Anchor<char, string> Name { get; set; }
             public bool IsAdditional { get; set; }
             public FList<Alternation> Alternations { get; set; }
         }
 
         public static Parser<char, FList<Rule>> syntax;
+        public static Parser<char, Rule> rule;
+        public static Parser<char> recover;
 
         static Abnf()
         {
@@ -193,7 +195,7 @@ namespace GrammarAnalyzer
 
             var defined_as = c_wsps.And(definedOp).And(c_wsps);
             
-            var rule = rulename.And(defined_as).And(elements).And(c_nl)
+            rule = rulename.Anchored().And(defined_as).And(elements).And(c_nl)
                 .Return(r => new Rule()
                 {
                     Name = r.Item1,
@@ -203,6 +205,8 @@ namespace GrammarAnalyzer
             
             syntax = rule.Or(c_wsps.And(c_nl)).Many(1)
                 .Return(r => FList.Create(from rl in r where rl.IsValid select rl.Value));
+
+            recover = Chars.Any.Ignored().Except(c_nl.And(WSP.Not())).Many(1);
         }
 
         private static Parser<char> BuildAlternations(
@@ -245,9 +249,9 @@ namespace GrammarAnalyzer
             var ruleTable = new Dictionary<string, Parser<char>>();
             
             foreach (var rule in rules)
-                ruleTable.Add(rule.Name, 
+                ruleTable.Add(rule.Name.Value, 
                     BuildAlternations(rule.Alternations, analysis, ruleTable)
-                        .Analyzed("rule " + rule.Name, analysis));
+                        .Analyzed("rule " + rule.Name.Value, analysis));
             
             ruleTable[ruleName](input);
             return analysis.ToAnalysis();

@@ -15,9 +15,67 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Parse;
+using Parse.CharCombinators;
+using ICSharpCode.AvalonEdit.CodeCompletion;
+using ICSharpCode.AvalonEdit.Document;
+using ICSharpCode.AvalonEdit.Editing;
 
 namespace GrammarAnalyzer
 {
+    public class CompletionData : ICompletionData
+    {
+        private string data;
+        public CompletionData(string data)
+        {
+            this.data = data;
+        }
+
+        public object Content
+        {
+            get
+            {
+                return data;
+            }
+        }
+
+        public object Description
+        {
+            get
+            {
+                return data;
+            }
+        }
+
+        public ImageSource Image
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public double Priority
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public string Text
+        {
+            get
+            {
+                return data;
+            }
+        }
+
+        public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
+        {
+            textArea.Document.Replace(completionSegment, data);
+        }
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -30,19 +88,18 @@ namespace GrammarAnalyzer
             {GrammarFormats.Abnf, "Augmented BNF"},
             {GrammarFormats.Ebnf, "Extended BNF"}
         };
-
         public Dictionary<GrammarFormats, string> Formats { get { return grammarFormats; } }
 
         private GrammarFormats grammarFormat = GrammarFormats.Abnf;
-        public GrammarFormats GrammarFormat 
-        {
-            get { return grammarFormat; } 
-            set { grammarFormat = value; }
-        }
+        public GrammarFormats GrammarFormat { get { return grammarFormat; } set { grammarFormat = value; } }
+
+        private FList<Abnf.Rule> abnfRules = null;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            grammarEditor.TextArea.PreviewKeyDown += grammarEditor_PreviewKeyDown;
 
             inputTextBox.Text = Properties.Settings.Default.InputText;
             grammarEditor.Text = Properties.Settings.Default.GrammarText;
@@ -125,7 +182,55 @@ namespace GrammarAnalyzer
         private void grammarEditor_TextChanged(object sender, EventArgs e)
         {
             var editor = (ICSharpCode.AvalonEdit.TextEditor)sender;
+            var text = editor.Text;
             Properties.Settings.Default.GrammarText = editor.Text;
+
+            if (grammarFormat == GrammarFormats.Abnf)
+            {
+                var result = Abnf.syntax(new StringInput(text));
+
+                if (result.IsSuccess)
+                {
+                    abnfRules = result.Success.Value;
+                    UpdateCompletionWindow();
+                }
+            }
+        }
+
+        private void UpdateCompletionWindow()
+        {
+            if (completionWindow != null)
+            {
+                completionWindow.CompletionList.CompletionData.Clear();
+                foreach (var rule in abnfRules)
+                {
+                    completionWindow.CompletionList.CompletionData.Add(
+                        new CompletionData(rule.Name.Value));
+                }
+            }
+        }
+
+        CompletionWindow completionWindow = null;
+        private void grammarEditor_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space 
+                && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                completionWindow = new CompletionWindow(grammarEditor.TextArea);
+                completionWindow.Show();
+                UpdateCompletionWindow();
+                completionWindow.Closed += (s, a) =>
+                {
+                    completionWindow = null;
+                };
+                e.Handled = true;
+            }
+            else if (completionWindow != null
+                && e.Key == Key.Tab)
+            {
+                e.Handled = true;
+                completionWindow.CompletionList.RequestInsertion(e);
+            }
         }
     }
 }

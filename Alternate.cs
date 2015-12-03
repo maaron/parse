@@ -13,7 +13,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     (success) => Result.Match(success.Remaining),
                     (failure) => right(input));
             };
@@ -37,7 +37,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     (success) => Result.Match(new Maybe<V>(), success.Remaining),
                     (failure) => right(input).MapValue(v => new Maybe<V>(v)));
             };

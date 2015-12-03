@@ -20,7 +20,7 @@ namespace UnitTest
             Assert.IsTrue(result.IsSuccess);
             var value = result.Success.Value;
             Assert.IsTrue(value.Count == 1);
-            Assert.IsTrue(value[0].Name == "rule");
+            Assert.IsTrue(value[0].Name.Value == "rule");
             Assert.IsTrue(value[0].IsAdditional == false);
             Assert.IsTrue(value[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier");
 

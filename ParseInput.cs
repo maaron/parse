@@ -164,6 +164,75 @@ namespace Parse
         }
     }
 
+    public class StringInput : IParseInput<char>
+    {
+        string data;
+        ErrorHeuristic<int> error;
+
+        public int Position { get; private set; }
+
+        public char Current
+        {
+            get { return data[Position]; }
+        }
+
+        public bool IsEnd
+        {
+            get { return Position >= data.Length; }
+        }
+
+        public IParseInput<char> Next()
+        {
+            return new StringInput(data, error, Position + 1);
+        }
+
+        protected StringInput(string data, ErrorHeuristic<int> error, int pos)
+        {
+            this.data = data;
+            this.error = error;
+            this.Position = pos;
+        }
+
+        public StringInput(string source)
+        {
+            this.data = source;
+            this.error = new ErrorHeuristic<int>(0);
+            this.Position = 0;
+        }
+
+        public void OnMatch() { error.OnMatch(Position); }
+        public void OnFail() { error.OnFail(Position); }
+
+        public ErrorHeuristic<int> Error
+        {
+            get { return error; }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || !(obj is StringInput)) return false;
+
+            var other = (StringInput)obj;
+
+            return Object.ReferenceEquals(data, other.data)
+                && Position == other.Position;
+        }
+
+        public override int GetHashCode()
+        {
+            return data.GetHashCode() + Position;
+        }
+
+        public int CompareTo(IParseInput<char> other)
+        {
+            if (!(other is StringInput))
+                throw new ArgumentException(
+                    "Argument must be a StringInput type");
+
+            return Position.CompareTo(((StringInput)other).Position);
+        }
+    }
+
     public struct LineColumn : IComparable<LineColumn>
     {
         public int Line;

@@ -36,13 +36,15 @@
                               SelectedValue="{Binding GrammarFormat}"/>
                 </StackPanel>
                 <avalon:TextEditor Name="grammarEditor" 
-                                   TextChanged="grammarEditor_TextChanged">
-                </avalon:TextEditor>
+                                   TextChanged="grammarEditor_TextChanged"/>
             </DockPanel>
             <GridSplitter x:Name="gridSplitterRow" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1"/>
             <avalon:TextEditor Name="inputTextBox" 
                                TextChanged="inputTextBox_TextChanged" 
-                               Grid.Row="2"/>
+                               Grid.Row="2" 
+                               HorizontalScrollBarVisibility="Auto" 
+                               VerticalScrollBarVisibility="Auto">
+            </avalon:TextEditor>
         </Grid>
         <GridSplitter x:Name="gridSplitterColumn" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="1" />
         <Grid Background="#FFE5E5E5" Grid.Column="2">

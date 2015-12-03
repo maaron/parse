@@ -23,7 +23,7 @@ namespace Parse
         public bool IsFailure { get { return result.IsItem2; } }
         public Failure<T> Failure { get { return result.Item2; } }
 
-        public R Visit<R>(Func<Success<T>, R> success, Func<Failure<T>, R> failure)
+        public R Map<R>(Func<Success<T>, R> success, Func<Failure<T>, R> failure)
         {
             return result.Map(success, failure);
         }
@@ -161,7 +161,7 @@ namespace Parse
         {
             try
             {
-                return r.Visit(
+                return r.Map(
                     (success) => Match(f(), success.Remaining),
                     (failure) => Fail<T, O>(failure.Remaining));
             }

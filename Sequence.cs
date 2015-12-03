@@ -36,7 +36,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     (success) => right(success.Remaining),
                     (failure) => Result.Fail<T, V>(input));
             };
@@ -60,7 +60,7 @@ namespace Parse.Combinators
         {
             return (input) =>
             {
-                return left(input).Visit(
+                return left(input).Map(
                     (success) => right(success.Remaining),
                     (failure) => Result.Fail<T>(input));
             };
