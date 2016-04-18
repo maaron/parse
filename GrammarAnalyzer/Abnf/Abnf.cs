@@ -204,7 +204,7 @@ namespace GrammarAnalyzer
                 });
             
             syntax = rule.Or(c_wsps.And(c_nl)).Many(1)
-                .Return(r => FList.Create(from rl in r where rl.IsValid select rl.Value));
+                .Return(r => FList.Create(from rl in r where rl.HasValue select rl.Value));
 
             recover = Chars.Any.Ignored().Except(c_nl.And(WSP.Not())).Many(1);
         }
@@ -234,9 +234,9 @@ namespace GrammarAnalyzer
                     return rep.Repeat.Map(
                         () => elem,
                         some => some.RangeOrCount.Map(
-                            range => range.Item1.IsValid && range.Item2.IsValid ? elem.Many(range.Item1.Value, range.Item2.Value)
-                                : range.Item1.IsValid ? elem.Many(range.Item1.Value)
-                                : range.Item2.IsValid ? elem.AtMost(range.Item2.Value)
+                            range => range.Item1.HasValue && range.Item2.HasValue ? elem.Many(range.Item1.Value, range.Item2.Value)
+                                : range.Item1.HasValue ? elem.Many(range.Item1.Value)
+                                : range.Item2.HasValue ? elem.AtMost(range.Item2.Value)
                                 : elem.ZeroOrMore(),
                             count => elem.Repeat(count)));
                 }))));

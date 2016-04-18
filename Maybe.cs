@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Functional
 {
@@ -15,7 +16,7 @@ namespace Functional
         }
     }
 
-    public class Maybe<T>
+    public struct Maybe<T> : IEquatable<Maybe<T>>
     {
         private T value;
         private bool valid;
@@ -26,18 +27,13 @@ namespace Functional
             this.value = value;
         }
 
-        public Maybe()
-        {
-            this.valid = false;
-        }
-
-        public bool IsValid { get { return valid; } }
+        public bool HasValue { get { return valid; } }
 
         public T Value
         {
             get
             {
-                if (!IsValid) throw new InvalidOperationException();
+                if (!HasValue) throw new InvalidOperationException();
                 return value;
             }
             set
@@ -61,6 +57,26 @@ namespace Functional
         public static implicit operator Maybe<T>(T value)
         {
             return new Maybe<T>(value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj != null
+                && obj is Maybe<T>
+                && Equals((Maybe<T>)obj);
+        }
+
+        public bool Equals(Maybe<T> other)
+        {
+            return HasValue == other.HasValue
+                && (!HasValue 
+                    || EqualityComparer<T>.Default.Equals(Value, other.Value));
+        }
+
+        public override int GetHashCode()
+        {
+            return HasValue ? Value.GetHashCode()
+                : base.GetHashCode();
         }
     }
 }

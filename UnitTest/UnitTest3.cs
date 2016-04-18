@@ -98,14 +98,14 @@ namespace UnitTest
 
             UnitTest.CheckMatch(Abnf.syntax,
                 "rule = *identifier\r", r =>
-                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item1.IsValid &&
-                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item2.IsValid &&
+                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item1.HasValue &&
+                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item2.HasValue &&
                 r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier");
 
             UnitTest.CheckMatch(Abnf.syntax,
                 "rule = 1*identifier\r", r =>
                 r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item1.Value == 1 &&
-                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item2.IsValid &&
+                !r[0].Alternations[0].Repetitions[0].Repeat.Value.RangeOrCount.Item1.Item2.HasValue &&
                 r[0].Alternations[0].Repetitions[0].Element.Item1.Value == "identifier");
 
             UnitTest.CheckMatch(Abnf.syntax,
