@@ -74,16 +74,22 @@ namespace Parse.CharCombinators
 
         public static Parser<char, V> Except<V>(this Parser<char, V> p, char c)
         {
+            return Parse.Combinators.Extensions.Not(Chars.Const(c)).And(p);
+#if false
             return (input) =>
                 input.Current == c ? Result.Fail<char, V>(input)
                     : p(input);
+#endif
         }
 
         public static Parser<char> Except(this Parser<char> p, char c)
         {
+            return Parse.Combinators.Extensions.Not(Chars.Const(c)).And(p);
+#if false
             return (input) => 
                 input.Current == c ? Result.Fail(input)
                     : p(input);
+#endif
         }
 
         public static Parser<char> Between(this Parser<char> p, char c)

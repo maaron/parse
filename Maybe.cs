@@ -78,5 +78,15 @@ namespace Functional
             return HasValue ? Value.GetHashCode()
                 : base.GetHashCode();
         }
+
+        public static bool operator ==(Maybe<T> lhs, Maybe<T> rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(Maybe<T> lhs, Maybe<T> rhs)
+        {
+            return !(lhs == rhs);
+        }
     }
 }
