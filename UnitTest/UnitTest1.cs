@@ -183,7 +183,7 @@ namespace UnitTest
 
             var escaped = '\\'.And(Chars.Any).Return(map);
             var nonescaped = Chars.Any.Except(escaped);
-            var term = nonescaped.If(c => c == '"');
+            var term = nonescaped.Where(c => c == '"');
             var mapped = escaped.OrSame(Chars.Any);
             var str = '"'.And(mapped.Except(term).ZeroOrMore()).And('"')
                 .Return(l => new String(l.ToArray()));

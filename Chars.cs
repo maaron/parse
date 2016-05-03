@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Parse.Linq;
 using Parse.Combinators;
 using Parse.InputExtensions;
 
@@ -67,15 +68,15 @@ namespace Parse
                 };
             }
 
-            public static Parser<char, char> Space = Any.If(System.Char.IsWhiteSpace);
-            public static Parser<char, char> Control = Any.If(System.Char.IsControl);
-            public static Parser<char, char> Digit = Any.If(System.Char.IsDigit);
-            public static Parser<char, char> Letter = Any.If(System.Char.IsLetter);
-            public static Parser<char, char> LetterOrDigit = Any.If(System.Char.IsLetterOrDigit);
+            public static Parser<char, char> Space = Any.Where(System.Char.IsWhiteSpace);
+            public static Parser<char, char> Control = Any.Where(System.Char.IsControl);
+            public static Parser<char, char> Digit = Any.Where(System.Char.IsDigit);
+            public static Parser<char, char> Letter = Any.Where(System.Char.IsLetter);
+            public static Parser<char, char> LetterOrDigit = Any.Where(System.Char.IsLetterOrDigit);
 
             public static Parser<char, char> AnyOf(string chars)
             {
-                return Any.If(c => chars.Contains(c));
+                return Any.Where(c => chars.Contains(c));
             }
         }
     }

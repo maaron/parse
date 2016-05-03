@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Functional;
+
+using Parse.Linq;
 using Parse.Combinators;
 
 namespace Parse.Combinators
@@ -142,7 +144,7 @@ namespace Parse.Combinators
 
         public static Parser<T, FList<V>> Many<T, V>(this Parser<T, V> parser, int min)
         {
-            return ZeroOrMore(parser).If(l => l.Count >= min);
+            return ZeroOrMore(parser).Where(l => l.Count >= min);
         }
 
         public static Parser<T> Many<T>(this Parser<T> parser, int min)

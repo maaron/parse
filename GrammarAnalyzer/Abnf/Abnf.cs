@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Parse;
+using Parse.Linq;
 using Parse.Combinators;
 using Parse.CharCombinators;
 using Functional;
@@ -223,7 +224,7 @@ namespace GrammarAnalyzer
                     charval => Chars.String(charval.Value),
                     terminal => terminal.SequenceOrRange.Map(
                         seq => Combinator.Sequence(seq.Select(c => Chars.Const((char)c)).ToArray()),
-                        range => Chars.Any.If(c => c >= range.Item1 && c <= range.Item2).Ignored()),
+                        range => Chars.Any.Where(c => c >= range.Item1 && c <= range.Item2).Ignored()),
                     proseval => Chars.String(proseval.Value));
             };
 
