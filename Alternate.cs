@@ -134,10 +134,15 @@ namespace Parse
         public static Parser<T, V> AnyOf<T, V>(
             params Parser<T, V>[] parsers)
         {
+            return AnyOf((IEnumerable<Parser<T, V>>)parsers);
+        }
+
+        public static Parser<T, V> AnyOf<T, V>(IEnumerable<Parser<T, V>> parsers)
+        {
             return (input) =>
             {
                 return parsers.Select(p => p(input))
-                    .Where(r => r.IsSuccess).FirstOrDefault() 
+                    .Where(r => r.IsSuccess).FirstOrDefault()
                         ?? Result.Fail<T, V>(input);
             };
         }
