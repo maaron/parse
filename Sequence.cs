@@ -89,11 +89,39 @@ namespace Parse
     public static partial class Combinator
     {
         public static Parser<T> Sequence<T>(
+            params Parser<T>[] parsers)
+        {
+            return Sequence((IEnumerable<Parser<T>>)parsers);
+        }
+
+        public static Parser<T> Sequence<T>(
             IEnumerable<Parser<T>> parsers)
         {
             return input =>
             {
                 Result<T> result = null;
+                foreach (var p in parsers)
+                {
+                    result = p(input);
+                    if (result.IsFailure) break;
+                    input = result.Success.Remaining;
+                }
+                return result;
+            };
+        }
+
+        public static Parser<T, V> Sequence<T, V>(
+            params Parser<T, V>[] parsers)
+        {
+            return Sequence((IEnumerable<Parser<T, V>>)parsers);
+        }
+
+        public static Parser<T, V> Sequence<T, V>(
+            IEnumerable<Parser<T, V>> parsers)
+        {
+            return input =>
+            {
+                Result<T, V> result = null;
                 foreach (var p in parsers)
                 {
                     result = p(input);
