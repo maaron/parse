@@ -14,6 +14,11 @@ namespace Functional
         {
             return new Maybe<T>();
         }
+
+        public static T? AsNullable<T>(this Maybe<T> m) where T : struct
+        {
+            return m.HasValue ? new T?(m.Value) : new T?();
+        }
     }
 
     public struct Maybe<T> : IEquatable<Maybe<T>>
