@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Functional;
 
 using Parse.Linq;
@@ -9,29 +10,26 @@ namespace Parse.Combinators
 {
     public static partial class Extensions
     {
+        private static IEnumerable<Success<T, V>> Matches<T, V>(this Parser<T, V> parser, IParseInput<T> input)
+        {
+            while (true)
+            {
+                var result = parser(input);
+                if (result.IsFailure || result.Remaining.Equals(input)) break;
+
+                yield return result.Success;
+                input = result.Remaining;
+            }
+        }
+
         public static Parser<T, FList<V>> ZeroOrMore<T, V>(
             this Parser<T, V> parser)
         {
-            return (input) =>
+            return parser.ZeroOrMoreAggregate(() => new FList<V>(), (list, value) =>
             {
-                var matches = new FList<V>();
-                bool failed = false;
-                while (!failed)
-                {
-                    parser(input).Visit(
-                        (success) =>
-                        {
-                            if (input.Equals(success.Remaining)) failed = true;
-                            else
-                            {
-                                input = success.Remaining;
-                                matches.Add(success.Value);
-                            }
-                        },
-                        (failure) => { failed = true; });
-                }
-                return Result.Match(matches, input);
-            };
+                list.Add(value);
+                return list;
+            });
         }
 
         public static Parser<T> ZeroOrMore<T>(
@@ -52,6 +50,16 @@ namespace Parse.Combinators
                 }
                 return Result.Match(input);
             };
+        }
+
+        public static Parser<T, R> ZeroOrMoreAggregate<T, V, R>(
+            this Parser<T, V> parser, Func<R> seed, Func<R, V, R> func)
+        {
+            return input => parser.Matches(input).Aggregate(
+                Result.Match(seed(), input),
+                (accum, success) => Result.Match(
+                    func(accum.Success.Value, success.Value), 
+                    success.Remaining));
         }
 
         public static Parser<T, FList<V>> AtMost<T, V>(
