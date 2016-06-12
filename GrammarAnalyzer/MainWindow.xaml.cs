@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using Functional;
 using Parse;
 using Parse.CharCombinators;
 using ICSharpCode.AvalonEdit.CodeCompletion;

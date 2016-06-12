@@ -80,6 +80,12 @@ namespace Functional.Linq
                 v1 => selector(v1).Select(
                     v2 => projector(v1, v2)));
         }
+
+        public static Maybe<T> Where<T>(this Maybe<T> m, Func<T, bool> predicate)
+        {
+            return m.HasValue && predicate(m.Value) ? m 
+                : Maybe.None<T>();
+        }
     }
 
     public static class NullableExtensions
