@@ -46,7 +46,14 @@
     <Compile Include="CharParserExtensions.cs" />
     <Compile Include="Chars.cs" />
     <Compile Include="Except.cs" />
+    <Compile Include="IEnumerableExtensions.cs" />
+    <Compile Include="Push\Alternate.cs" />
+    <Compile Include="Push\Chars.cs" />
+    <Compile Include="Push\Linq.cs" />
+    <Compile Include="Push\Parser.cs" />
+    <Compile Include="Push\Repeated.cs" />
     <Compile Include="Return.cs" />
+    <Compile Include="Unit.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="FList.cs" />
     <Compile Include="Linq.cs" />

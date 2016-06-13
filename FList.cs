@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Parse
+namespace Functional
 {
     public static class FList
     {

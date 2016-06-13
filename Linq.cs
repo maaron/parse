@@ -81,6 +81,12 @@ namespace Functional.Linq
                     v2 => projector(v1, v2)));
         }
 
+        public static Maybe<T> Where<T>(this Maybe<T> m, Func<T, bool> predicate)
+        {
+            return m.HasValue && predicate(m.Value) ? m 
+                : Maybe.None<T>();
+        }
+
         public static Maybe<T> Or<T>(this Maybe<T> m1, Maybe<T> m2)
         {
             return m1.HasValue ? m1 : m2;
