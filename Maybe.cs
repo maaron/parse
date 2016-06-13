@@ -84,6 +84,12 @@ namespace Functional
                 : base.GetHashCode();
         }
 
+        public override string ToString()
+        {
+            return HasValue ? "Some " + Value.ToString()
+                : "None";
+        }
+
         public static bool operator ==(Maybe<T> lhs, Maybe<T> rhs)
         {
             return lhs.Equals(rhs);
