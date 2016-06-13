@@ -29,5 +29,14 @@ namespace PushParse
 
             return () => Tuple.Create(seed(), process);
         }
+
+        public static Parser<T, FList<V>, FList<V>> ZeroOrMore<T, S, V>(this Parser<T, S, V> parser)
+        {
+            return parser.Aggregate(() => new FList<V>(), (list, r) =>
+            {
+                list.Add(r);
+                return list;
+            });
+        }
     }
 }

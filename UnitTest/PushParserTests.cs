@@ -109,7 +109,8 @@ namespace UnitTest
         {
             var p = Chars.String("ab").Or(from s in Chars.String("aa") select 123);
 
-            var stack = p.Parse(m => Assert.IsTrue(m.Value.Item1 == "ab"));
+            string r1 = null;
+            var stack = p.Parse(m => { r1 = m.Value.Item1; });
 
             stack.ProcessToken('a');
             Assert.IsTrue(stack.IsDone == false);
@@ -118,8 +119,10 @@ namespace UnitTest
             stack.ProcessToken('b');
             Assert.IsTrue(stack.IsDone == true);
             Assert.IsTrue(stack.IsMatch == true);
+            Assert.IsTrue(r1 == "ab");
 
-            stack = p.Parse(m => Assert.IsTrue(m.Value.Item2 == 123));
+            int r2 = 0;
+            stack = p.Parse(m => { r2 = m.Value.Item2; });
 
             stack.ProcessToken('a');
             Assert.IsTrue(stack.IsDone == false);
@@ -128,6 +131,7 @@ namespace UnitTest
             stack.ProcessToken('a');
             Assert.IsTrue(stack.IsDone == true);
             Assert.IsTrue(stack.IsMatch == true);
+            Assert.IsTrue(r2 == 123);
         }
 
         [TestMethod]

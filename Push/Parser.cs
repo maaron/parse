@@ -47,11 +47,21 @@ namespace PushParse
                 Start = Position
             });
 
-            // Forward the token to the newly pushed parser
-            if (Position + 1 == Buffer.Count)
+            // Process any buffered data, stopping before the current token
+            while (Position < Buffer.Count - 1 && States.Count > 0)
+            {
                 States.Peek().TokenHandler(Buffer[Position]);
-            else if (isEnd)
-                States.Peek().TokenHandler(Maybe.None<T>());
+                Position++;
+            }
+
+            // Process the current token
+            if (States.Count > 0)
+            {
+                if (Position < Buffer.Count)
+                    States.Peek().TokenHandler(Buffer[Position]);
+                else if (isEnd)
+                    States.Peek().TokenHandler(Maybe.None<T>());
+            }
         }
 
         public void Pop<R>(Maybe<R> result)
