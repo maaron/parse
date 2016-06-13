@@ -80,6 +80,11 @@ namespace Functional.Linq
                 v1 => selector(v1).Select(
                     v2 => projector(v1, v2)));
         }
+
+        public static Maybe<T> Or<T>(this Maybe<T> m1, Maybe<T> m2)
+        {
+            return m1.HasValue ? m1 : m2;
+        }
     }
 
     public static class NullableExtensions
