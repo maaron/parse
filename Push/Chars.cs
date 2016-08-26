@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Functional;
+using Parse.Push.Linq;
 
-namespace PushParse
+namespace Parse.Push
 {
     public static class Chars
     {

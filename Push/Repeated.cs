@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Functional;
+using Functional.Linq;
 
-namespace PushParse
+namespace Parse.Push
 {
     public static class Repeated
     {
@@ -14,7 +15,7 @@ namespace PushParse
             ProcessToken<T, Unit, V> process = (s, t) =>
             {
                 int pos = s.Position;
-                s.Push(parser, r => s.Pop(r));
+                s.Push(parser, r => s.Pop(s.Position > pos ? r : Maybe.None<V>()));
             };
 
             return () => Tuple.Create(default(Unit), process);

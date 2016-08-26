@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Functional;
 using Functional.Linq;
 
-namespace PushParse
+namespace Parse.Push.Linq
 {
-    public static class Linq
+    public static class Extensions
     {
         public static Parser<T, S, R> Select<T, S, V, R>(
             this Parser<T, S, V> p,

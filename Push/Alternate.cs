@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Functional;
 using Functional.Linq;
 
-namespace PushParse.Combinators
+namespace Parse.Push.Combinators
 {
     public static class Alternate
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Functional;
 
-namespace PushParse
+namespace Parse.Push
 {
     public interface IParserStack<T>
     {

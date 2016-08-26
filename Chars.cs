@@ -68,11 +68,11 @@ namespace Parse
                 };
             }
 
-            public static Parser<char, char> Space = Any.Where(System.Char.IsWhiteSpace);
-            public static Parser<char, char> Control = Any.Where(System.Char.IsControl);
-            public static Parser<char, char> Digit = Any.Where(System.Char.IsDigit);
-            public static Parser<char, char> Letter = Any.Where(System.Char.IsLetter);
-            public static Parser<char, char> LetterOrDigit = Any.Where(System.Char.IsLetterOrDigit);
+            public static Parser<char, char> Space = Any.Where(char.IsWhiteSpace);
+            public static Parser<char, char> Control = Any.Where(char.IsControl);
+            public static Parser<char, char> Digit = Any.Where(char.IsDigit);
+            public static Parser<char, char> Letter = Any.Where(char.IsLetter);
+            public static Parser<char, char> LetterOrDigit = Any.Where(char.IsLetterOrDigit);
 
             public static Parser<char, char> AnyOf(string chars)
             {

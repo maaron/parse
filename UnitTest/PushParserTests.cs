@@ -3,8 +3,9 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using PushParse;
-using PushParse.Combinators;
+using Parse.Push;
+using Parse.Push.Linq;
+using Parse.Push.Combinators;
 using Functional;
 
 namespace UnitTest
